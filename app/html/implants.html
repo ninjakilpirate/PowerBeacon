@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> !-->
+
+    <title>PowerBeacon</title>
+  </head>
+
+
+<body style="background-color: #573866">
+
+<div class="container" style="background-color:#240b30">
+</div>
+
+<!--Navbar Start!-->
+<div class="container">
+
+<nav class="navbar navbar-dark " style="background-color: #240b30;">
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+ 
+	<span class="navbar-text h2">PowerBeacon</span>
+	<a class="navbar-brand" href="/implants"><img src="/static/images/logo_black_nobg.png" width="100" height="100" class="d-inline-block align-center" alt="">
+	
+	</a>
+   
+  <div class="collapse navbar-collapse" id="navbarText">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Features</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Pricing</a>
+      </li>
+    </ul>
+ 
+ 
+  
+</nav>
+	
+  </div>
+</nav>
+</div>
+<!-- Navbar end!-->
+
+
+
+<!--Start of Container-->
+<p>
+<div class="container">
+
+<!-- Flashes and Errors --!>
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  <strong>{{error}}</strong> You should check in on some of those fields below.
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{% endif %}
+
+{% with messages = get_flashed_messages() %}  
+         {% if messages %}  
+               {% for message in messages %}  
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+  <strong>{{ message }}</strong> 
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+               {% endfor %}  
+         {% endif %}  
+{% endwith %}  
+<!-- End Flashes and Errors --!>
+
+
+
+<div class="container text-white rounded p-4 " style="background-color: #240b30">
+
+<!-- Header Card Start --!>
+        <h1 class="display-4">{{implantDetails[0][0]}}</h1>
+        <div class="media float-right">
+		<div class="media-body">
+	<p class="h5 float-right"><u>Check In History</p></br></u>
+		<p class="h6 float-right">{{checkIns[0][3]}}</p></br>
+		<p class="h6 float-right">{{checkIns[1][3]}}</p></br>
+		<p class="h6 float-right">{{checkIns[2][3]}}</p></br>
+		<p class="h6 float-right">{{checkIns[3][3]}}</p></br>
+		<p class="h6 float-right">{{checkIns[4][3]}}</p></br></br></br>
+
+		</div>
+		<img class="ml-2 align-self-start" src="/static/images/expand.png" height="40px" width="40px" data-toggle="modal" data-target="#modalCheckIns"></img><span><br><br>
+	</div>
+
+
+	<p class="lead">Notes: {{implantDetails[0][2]}}</p>
+  <br>Callback URL: {{implantDetails[3]}}
+  <br>WMI Filter: {{implantDetails[5]}}
+  <br>WMI Consumer: {{implantDetails[6]}}
+<br><br></br></br>
+</div>
+<!-- Header Card End --!>
+
+<!--Pending Tasks Table!--><br>
+{% if pendingTasks %}
+
+<div><p class="h3 text-white"><u>Pending Tasks</u></p></div>
+<table class="table table-dark table-hover rounded">
+  <thead>
+    <tr>
+        <th scople="col">Task ID</th>
+        <th scope="col">Task Name</th>
+        <th scope="col">Time Tasked</th>
+    <tr>
+  </thead>
+  <tbody>
+
+    {% for line in pendingTasks %}
+        <tr data-toggle="modal" data-target="#Modal{{line[0]}}">
+            <td>{{line[0]}}</td>
+            <td>{{line[3]}}</td>
+            <td>{{line[4]}}</td>
+       </tr>
+    {% endfor %}
+</table>
+{% endif %}
+<!-- End Pending Tasks--!>
+
+<!--Task Button Start--!>
+<div><p class="h3 text-white"><u>Task Implant</u></p></div>
+<div class="card p-2" style="background-color: #240b30;">
+         <br>
+         <div class="btn-toolbar justify-content-between m-2" role="toolbar">
+         <button class="btn btn-dark" data-toggle="modal" data-target="#addTaskModal">Callback Timing</button>
+         <button class="btn btn-dark" data-toggle="modal" data-target="#addTaskModal">Task Survey</button>
+         <button class="btn btn-dark" data-toggle="modal" data-target="#modalAddTask">Add Custom Task</button> 
+         </div>
+</div>
+</br>
+<!-- Task Button End--!>
+
+<div id="accordion">
+  <div class="card" style="background-color: #1c1b1a">
+    <div class="card-header" id="headingOne">
+      <h5 class="mb-0">
+        <button class="btn btn-dark" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="background-color: #573866">Tasks</button>
+    </div>
+
+    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+      <div class="card-body">
+
+
+
+
+	 </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="headingTwo">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          Taskings
+        </button>
+      </h5>
+    </div>
+    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+      <div class="card-body">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+		Launch demo modal
+		</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+</div>
+
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="static/js/jquery-3.2.1.slim.min.js"></script>
+    <script src="static/js/popper.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+
+
+
+<!-- Pending Task Modals -->
+
+{% for line in pendingTasks %}
+
+<script>
+function copyTask{{line[0]}}() {
+  // Get the text field
+  var copyText = document.getElementById("taskDetails{{line[0]}}");
+
+  // Select the text field
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); // For mobile devices
+
+   // Copy the text inside the text field
+  navigator.clipboard.writeText(copyText.value);
+
+  // Alert the copied text
+  alert("Text copied to clipboard");
+}
+</script>  
+
+<!-- Modal -->
+<div class="modal fade" id="Modal{{line[0]}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Task Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+		<input type="text" class="form-control" id="taskDetails{{line[0]}}" value="{{line[2]}}" style="visibility:hidden"></input>
+		<textarea class="form-control" rows="10">{{line[2]}}</textarea>
+		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTask{{line[0]}}()"></img></a>
+		
+      </div>
+      <div class="modal-footer">
+        <form method="post" action="/deleteTask">
+        <input type="hidden" name="taskID" value={{line[0]}} required></input>
+        <button type="submit" class="btn btn-danger">Delete Task</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+<!-- End Pending Tasks Modal --!>
+
+<!-- Check Ins Modal --!>
+<div class="modal fade" id="modalCheckIns" tabindex="-1" role="dialog" aria-labelledby="modalCheckIns" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCheckInsTitle">Check In Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-dark table-striped table-bordered table-sm p-0 m-0">
+                        <thead>
+                        <tr>
+                                <th scope="col">Check In Time</th>
+                                <th scope="col">Gateway</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for line in checkIns %}
+                            <tr>
+                                <td>{{line[3]}}</td>
+                                <td>{{line[2]}}</td>
+                           </tr>
+                        {% endfor %}
+
+
+                        </tbody>
+                        </table>
+
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Check Ins Modal --!>
+
+<div class="modal fade" id="modalAddTask" tabindex="-1" role="dialog" aria-labelledby="modalAddTask" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAddTaskTitle">Add Task</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <form method="POST" action="/addTask">
+        <div class="form-group">
+        <input type="text" class="form-control" name="task" placeholder="Enter task to run" required></input></br>
+        <input type="text" class="form-control" name="notes" placeholder="Enter task notes" required></input>
+	<input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
+        </div>
+        
+
+
+
+
+
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Submit Task</button>
+	</form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+  </body>
+
+
+
+
+</html>
