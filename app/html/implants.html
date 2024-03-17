@@ -34,13 +34,13 @@
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        <a class="nav-link" href="#">Implants <span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Features</a>
+        <a class="nav-link" href="#">Listening Posts</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Pricing</a>
+        <a class="nav-link" href="#">Tools</a>
       </li>
     </ul>
  
@@ -86,10 +86,19 @@
 
 
 
-<div class="container text-white rounded p-4 " style="background-color: #240b30">
+<div class="container-fluid text-white rounded p-4 " style="background-color: #240b30">
 
 <!-- Header Card Start --!>
+        <div class="row">
+        <div class="col-lg-6">
         <h1 class="display-4">{{implantDetails[0][0]}}</h1>
+	<p class="h6 m-0"> Notes: {{implantDetails[0][2]}}</p>
+  <br><strong>Callback URL:</strong> {{implantDetails[0][3]}}
+  <br><strong>WMI Filter:</strong> {{implantDetails[0][4]}}
+  <br><strong>WMI Consumer:</strong> {{implantDetails[0][5]}}
+<br><br></br></br></div>
+<div class="col-md-auto"></div>        
+<div class="col-sm">
         <div class="media float-right">
 		<div class="media-body">
 	<p class="h5 float-right"><u>Check In History</p></br></u>
@@ -101,15 +110,11 @@
 
 		</div>
 		<img class="ml-2 align-self-start" src="/static/images/expand.png" height="40px" width="40px" data-toggle="modal" data-target="#modalCheckIns"></img><span><br><br>
-	</div>
+	</div>	</div>
 
-
-	<p class="lead">Notes: {{implantDetails[0][2]}}</p>
-  <br>Callback URL: {{implantDetails[3]}}
-  <br>WMI Filter: {{implantDetails[5]}}
-  <br>WMI Consumer: {{implantDetails[6]}}
-<br><br></br></br>
 </div>
+<div class="row"><div class="col"><button class="button btn-dark rounded">   Edit   </button></div>
+</div></div>
 <!-- Header Card End --!>
 
 <!--Pending Tasks Table!--><br>
@@ -142,52 +147,53 @@
 <div class="card p-2" style="background-color: #240b30;">
          <br>
          <div class="btn-toolbar justify-content-between m-2" role="toolbar">
-         <button class="btn btn-dark" data-toggle="modal" data-target="#addTaskModal">Callback Timing</button>
-         <button class="btn btn-dark" data-toggle="modal" data-target="#addTaskModal">Task Survey</button>
+         <button class="btn btn-dark" data-toggle="modal" data-target="#modalChangeTime">Callback Timing</button>
+         <button class="btn btn-dark" data-toggle="modal" data-target="#modalSurvey">Task Survey</button>
          <button class="btn btn-dark" data-toggle="modal" data-target="#modalAddTask">Add Custom Task</button> 
          </div>
 </div>
 </br>
-<!-- Task Button End--!>
+<!-- Survey Data Start --!>
 
-<div id="accordion">
-  <div class="card" style="background-color: #1c1b1a">
-    <div class="card-header" id="headingOne">
-      <h5 class="mb-0">
-        <button class="btn btn-dark" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne" style="background-color: #573866">Tasks</button>
-    </div>
+{% if surveyData %}
 
-    <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
-      <div class="card-body">
+<div><p class="h3 text-white"><u>Survey Data</u></p></div>
+
+<table class="table table-sm table-dark table-hover rounded">
+  <thead>
+    <tr>
+        <th scope="col"></th>
+        <th scope="col">Time Recieved</th>
+        <th scope="col"></th>
+        <th scope="col"></th>
+        <th scope="col">Survey Notes</th>
+
+    <tr>
+  </thead>
+  <tbody>
+
+    {% for line in surveyData %}
+        <tr>
+            <td class="w-10 p-2">
+            <form method="post" target="_blank" action="/displaySurvey">
+            <input type="hidden" name="ID" value={{line[0]}} required>
+            <button type="submit" class="btn btn-secondary" value="{{line[0]}}">View</button>
+            </form>
+            </td>
+            <td class="text-nowrap align-middle">{{line[2]}}</td>
+            <td class="w-10"></td>
+            <td class="w-10"></td>
+            <td class="text-nowrap w-100 align-middle">{{line[3]}}</td>
+       </tr>
+    {% endfor %}
+</table>
+{% endif %}
+<!-- End of Survey Data--!>
 
 
 
 
-	 </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header" id="headingTwo">
-      <h5 class="mb-0">
-        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-          Taskings
-        </button>
-      </h5>
-    </div>
-    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-      <div class="card-body">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-		Launch demo modal
-		</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-
-</div>
-
+</div><!--End of Primary Card--!>
 
 
 
@@ -299,23 +305,100 @@ function copyTask{{line[0]}}() {
 
         <form method="POST" action="/addTask">
         <div class="form-group">
-        <input type="text" class="form-control" name="task" placeholder="Enter task to run" required></input></br>
+        <textarea class="form-control" name="task" placeholder="Enter task to run" rows="10"required></textarea></br>
         <input type="text" class="form-control" name="notes" placeholder="Enter task notes" required></input>
 	<input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
         </div>
-        
-
-
-
-
-
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-primary">Submit Task</button>
+        <button type="submit" class="btn btn-secondary">Submit Task</button>
 	</form>
       </div>
     </div>
-  </div>
+</div>
+</div>
+<!-- END Add Task --!>
+
+
+<!-- Begin change time --!>
+<div class="modal fade" id="modalChangeTime" tabindex="-1" role="dialog" aria-labelledby="modalChangeTime" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalChangeTimeTitle">Change Callback Interval</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+    <form method="POST" action="/changeTime">
+    
+    <select class="form-control" name="interval" id="interval" required/>
+        <option value="5">4 hours</option>
+        <option value="4">1 Hour</option>
+        <option value="3">30 Minutes</option>
+        <option value="2">15 Minutes</option>
+        <option value="1">1 minute</option>
+        <option value="0">15 Seconds</option>
+    </select>
+    <input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-secondary">Submit Task</button>
+        </form>
+      </div>
+</div>
+</div>
+</div>
+<!-- End Change Time Modal --!>
+
+<!-- Begin Survey --!>
+<div class="modal fade" id="modalSurvey" tabindex="-1" role="dialog" aria-labelledby="modalSurvey" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalSurveyTitle">Task Survey</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+    <p class="h3">Choose optional survey items</p>
+    <form method="POST" action="/taskSurvey">
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="dirs" name="dirs"></input>
+        <label class="form-check-label" for="dirs">
+          Get Directory Listings
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="firewall" name="firewall"></input>
+        <label class="form-check-label" for="firewall">
+          Get Firewall Profiles and NETSH
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="mppref" name="mppref"></input>
+        <label class="form-check-label" for="mppref">
+          Get-MpPreference
+        </label>
+      </div>
+    </br> 
+    
+    <input type="text" class="form-control" name="notes" required placeholder="Enter Survey Note"></input></br>
+    <input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-secondary">Submit Task</button>
+        </form>
+      </div>
+</div>
+</div>
+<!-- End Survey Modal --!>
+
+
+
+
 </div>
 
 
@@ -327,3 +410,4 @@ function copyTask{{line[0]}}() {
 
 
 </html>
+
