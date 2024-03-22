@@ -36,8 +36,22 @@ def implants():
         checkIns=pb.getCheckIns(myConnection,UUID,"10")    #getting data to send to page
         implantDetails=pb.getDetails(myConnection,UUID)
         pendingTasks=pb.getTasks(myConnection,UUID,"0")
+        completedTasks=pb.getTasks(myConnection,UUID,"1")
         surveyData = pb.getSurveyList(myConnection,UUID) 
-        return render_template('implants.html',implantDetails=implantDetails,checkIns=checkIns,UUID=implantDetails[0][0],pendingTasks=pendingTasks,surveyData=surveyData,error=error)
+        C2List = pb.getC2List(myConnection)
+        
+        #Get all the install lines to send to the page
+        zeroInstall = pb.generateInstall(myConnection,UUID,0)[0]
+        oneInstall = pb.generateInstall(myConnection,UUID,1)[0]
+        twoInstall = pb.generateInstall(myConnection,UUID,2)[0]
+        threeInstall = pb.generateInstall(myConnection,UUID,3)[0]
+        fourInstall = pb.generateInstall(myConnection,UUID,4)[0]
+        fiveInstall = pb.generateInstall(myConnection,UUID,5)[0]
+        uninstall = pb.generateInstall(myConnection,UUID,0)[1]
+        installLines = [zeroInstall,oneInstall,twoInstall,threeInstall,fourInstall,fiveInstall,uninstall]
+
+
+        return render_template('implants.html',implantDetails=implantDetails,checkIns=checkIns,UUID=implantDetails[0][0],pendingTasks=pendingTasks,surveyData=surveyData,completedTasks=completedTasks,C2List=C2List,installLines=installLines,error=error)
     else:
         return redirect('/selectImplant') 
 
@@ -71,9 +85,27 @@ def deleteTask():
             
             return redirect(url_for('implants'))
         except:
-            error = "Error deleting task"
+            error = "Error deleting task.  Task may have already completed."
+            flash(error)
             return redirect(url_for('implants'))
         return redirect(url_for('implants'))
+
+@app.route('/updateSettings',methods=['GET','POST'])
+def updateSettings():
+    error=None
+    if request.method=="POST":
+        notes = request.form['updateNotes']
+        UUID = request.form['UUID']
+        if 'updateSettings' in request.form:
+            C2 = request.form['updateC2']
+            filter = request.form['updateFilter']
+            consumer = request.form['updateConsumer']
+            interval = request.form['interval']
+            pb.updateSettings(myConnection,UUID,notes,C2,filter,consumer,interval)
+        else:
+            pb.updateNotes(myConnection,UUID,notes)
+        return redirect(url_for('implants'))
+    return redirect(url_for('implants'))
 
 
 @app.route('/generateInstall',methods=['GET','POST'])
@@ -127,7 +159,7 @@ def getData():
         dataDetails=cur.fetchall()
         cur.close()
         return render_template('displaySurvey.html',error=error,dataDetails=dataDetails)
-
+        
     return redirect(url_for('implants'))
 
 
