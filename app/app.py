@@ -4,7 +4,7 @@ from flask import Flask,render_template,request,redirect,url_for,flash,make_resp
 import time
 from base64 import b64encode
 import MySQLdb
-import pbLibrary as pb
+import lib.pbLibrary as pb
 
 
 app = Flask(__name__,template_folder='html')
@@ -107,14 +107,15 @@ def updateSettings():
         return redirect(url_for('implants'))
     return redirect(url_for('implants'))
 
-
-@app.route('/generateInstall',methods=['GET','POST'])
-def generateInstall():
-    UUID="NewTest"
-    interval="0"
-    interval=int(interval)    #Expecting and INT;  force it here
-    installLines=pb.generateInstall(myConnection,UUID,interval)    #get the install lines and uninstall lines, returns as [install,uninstall]
+@app.route('/uninstallImplant',methods=['GET','POST'])
+def uninstallImplant():
+    error=None
+    if request.method=="POST":
+        UUID = request.form['UUID']
+        pb.uninstallImplant(myConnection,UUID)
+        return redirect(url_for('implants'))
     return redirect(url_for('implants'))
+
 
 @app.route('/changeTime',methods=['GET','POST'])
 def changeTime():
@@ -142,7 +143,6 @@ def taskSurvey():
             options[1]=True
         if "mppref" in request.form:
             options[2]=True         
-        print(options)
         task=pb.generateSurvey(myConnection,UUID,options,notes)
         pb.addTask(myConnection,UUID,task,notes)
         flash("Survey Tasked")
@@ -162,8 +162,18 @@ def getData():
         
     return redirect(url_for('implants'))
 
-
+@app.route('/deleteImplant',methods=['GET','POST'])
+def deleteImplant():
+    error = None
+    if request.method == 'POST':
+        UUID=request.form['deleteImplantID']
+        pb.deleteImplant(myConnection,UUID)
+        return redirect(url_for('implants'))
+        flash("Implant Deleted")
+    return redirect(url_for('implants'))
 
 
 if __name__ == "__main__":
+    #app.run(ssl_context=('adhoc'),host='0.0.0.0',port=5000,debug=True)  //For HTTPS, complicates things for now
     app.run(host='0.0.0.0',port=5000,debug=True)
+

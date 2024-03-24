@@ -36,10 +36,80 @@ background-color: #573866;
 background-color:#240b30
 }
 
+.x7 {
+    box-shadow: inset 1px 1px 150px #000;
+}
 
-
-
+.x3 {
+    box-shadow: 0 0 20px hsla(281,63%,50%,1);
+}
 </style>
+
+<script>
+function copyTextBox(textBox) {
+  // Get the text field
+  var copyText = document.getElementById(textBox);
+
+  // Select the text field
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); // For mobile devices
+
+   // Copy the text inside the text field
+  navigator.clipboard.writeText(copyText.value);
+
+  // Alert the copied text
+  alert("Text copied to clipboard");
+}
+
+function disableTaskDelete(taskNumber) {
+    var inputValue = document.getElementById("taskSystemCheck" + taskNumber).value;  // Define the input element
+    var deleteTaskButton = document.getElementById("deleteTaskButton" + taskNumber); // Define the button element
+    var deleteStatusText = document.getElementById("deleteStatusText" + taskNumber); // Define the status text element
+
+    if (inputValue.toLowerCase().includes("powerbeacon system")) {
+        deleteTaskButton.setAttribute('disabled', true);
+        deleteStatusText.style.visibility = 'visible';
+    } 
+};
+
+function unlockSettings() {
+  if (document.getElementById("updateSettings").checked) {
+    disableForm(false);
+  }
+  if (!document.getElementById("updateSettings").checked) {
+    disableForm(true);
+  }
+
+}
+
+function disableForm(flag) {
+  var elements = document.getElementsByClassName("updateSettings");
+  for (var i = 0, len = elements.length; i < len; ++i) {
+    elements[i].readOnly = flag;
+    elements[i].disabled = flag;
+  }
+}
+
+function updateTextarea(value) {
+    document.getElementById('installLines').value = value;
+}
+
+function unlockUninstall() {
+    var uninstallButton = document.getElementById("uninstallButton");
+    if (document.getElementById("checkUninstall").checked) {
+        uninstallButton.removeAttribute('disabled');
+        uninstallButton.classList.add('btn-danger')
+    } 
+    if (!document.getElementById("checkUninstall").checked) {
+        uninstallButton.setAttribute('disabled', true);
+        uninstallButton.classList.remove('btn-danger')
+    }
+}
+
+</script>  
+
+
+
 
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -57,11 +127,7 @@ background-color:#240b30
 
 
 <body style="background-color: #573866">
-
-<div class="container">
-</div>
-
-<!--Navbar Start!-->
+<!--Navbar Start-->
 <div class="container">
 
 <nav class="navbar navbar-dark dark-purple">
@@ -78,10 +144,10 @@ background-color:#240b30
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="#">Implants <span class="sr-only">(current)</span></a>
+        <a class="nav-link" href="/selectImplant">Select Implant <span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Listening Posts</a>
+        <a class="nav-link" href="/listeningPosts">Listening Posts</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#">Tools</a>
@@ -94,7 +160,7 @@ background-color:#240b30
   </div>
 </nav>
 </div>
-<!-- Navbar end!-->
+<!-- Navbar end-->
 
 
 
@@ -102,7 +168,7 @@ background-color:#240b30
 <p>
 <div class="container">
 
-<!-- Flashes and Errors --!>
+<!-- Flashes and Errors -->
 {% if error %}
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
   <strong>{{error}}</strong> You should check in on some of those fields below.
@@ -129,7 +195,7 @@ background-color:#240b30
                {% endfor %}  
          {% endif %}  
 {% endwith %}  
-<!-- End Flashes and Errors --!>
+<!-- End Flashes and Errors -->
 
 <!-- Auto Close Alerts Script 
 <script>
@@ -140,14 +206,15 @@ $(document).ready(function() {
 });
 </script>
 
-#I'm not sure I like the auto close --!>
+<!-- I'm not sure I like the auto close -->
 
 
 
 
-<div class="container-fluid text-white rounded p-4 dark-purple " >
+<div class="container-fluid text-white rounded p-4 dark-purple" >
 
-<!-- Header Card Start --!>
+<!-- Header Card Start -->
+
         <div class="row">
         <div class="col-lg-6">
         <h1 class="display-4">{{implantDetails[0][0]}}</h1>
@@ -160,13 +227,10 @@ $(document).ready(function() {
 <div class="col-sm">
         <div class="media float-right">
 		<div class="media-body">
-	<p class="h5 float-right"><u>Check In History</p></br></u>
-		<p class="h6 float-right">{{checkIns[0][3]}}</p></br>
-		<p class="h6 float-right">{{checkIns[1][3]}}</p></br>
-		<p class="h6 float-right">{{checkIns[2][3]}}</p></br>
-		<p class="h6 float-right">{{checkIns[3][3]}}</p></br>
-		<p class="h6 float-right">{{checkIns[4][3]}}</p></br></br></br>
-
+         	<p class="h5 float-right"><u>Check In History</p></br></u>
+                {% for line in checkIns[:5] %}
+                <p class="h6 float-right">{{ line[3] }}</p><br>
+                {% endfor %}
 		</div>
 		<img class="ml-2 align-self-start" src="/static/images/expand.png" height="40px" width="40px" data-toggle="modal" data-target="#modalCheckIns"></img><span><br><br>
 	</div>	</div>
@@ -174,10 +238,10 @@ $(document).ready(function() {
 </div>
 <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#modalEditImplant">Implant Settings</button>
 </div>
-<!-- Header Card End --!>
+<!-- Header Card End -->
 </br></br>
 
-<!--Task Button Start--!>
+<!--Task Button Start-->
 <div><p class="h3 text-white"><u>Task Implant</u></p></div>
 <div class="card p-2" style="background-color: #240b30;">
          <br>
@@ -188,9 +252,9 @@ $(document).ready(function() {
          </div>
 </div>
 </br>
-<!-- Task Buttons End --!>
+<!-- Task Buttons End -->
 
-<!--start tab navigation bar --!>
+<!--start tab navigation bar -->
 </br></br>
 <ul class="nav nav-pills mb-0" id="pills-tab" role="tablist">
   <li class="nav-item pill-1">
@@ -218,7 +282,8 @@ $(document).ready(function() {
   <tbody>
 
     {% for line in pendingTasks %}
-        <tr data-toggle="modal" data-target="#Modal{{line[0]}}">
+
+        <tr data-toggle="modal" data-target="#Modal{{line[0]}}" onClick = "disableTaskDelete('{{line[0]}}')">
             <td class="text-center">{{line[0]}}</td>
             <td class="text-center">{{line[3]}}</td>
        </tr>
@@ -273,8 +338,8 @@ $(document).ready(function() {
 <div class="text-center"><button type="submit" class="btn btn-secondary text-center" value="{{line[0]}}">View</button></div>
             </form>
             </td>
-            <td class="text-nowrap text-center"">{{line[2]}}</td>
-            <td class="text-nowrap text-center">{{line[3]}}</td>
+            <td class="text-nowrap text-center align-middle">{{line[2]}}</td>
+            <td class="text-nowrap text-center align-middle">{{line[3]}}</td>
        </tr>
     {% endfor %}
 </table>
@@ -287,12 +352,10 @@ $(document).ready(function() {
 <br><br>
 
 
-
-
-</div><!--End of Primary Card--!>
+</div><!--End of Primary Card-->
 
 <footer class="footer dark-purple">
-    <span class="text-muted float-right">github.com/ninjakilpirate&nbsp&nbsp  </span>
+  <span class="text-muted float-right">github.com/ninjakilpirate&nbsp&nbsp  </span>
 </footer>
 
 
@@ -301,22 +364,6 @@ $(document).ready(function() {
 
 {% for line in pendingTasks %}
 
-<script>
-function copyTask{{line[0]}}() {
-  // Get the text field
-  var copyText = document.getElementById("taskDetails{{line[0]}}");
-
-  // Select the text field
-  copyText.select();
-  copyText.setSelectionRange(0, 99999); // For mobile devices
-
-   // Copy the text inside the text field
-  navigator.clipboard.writeText(copyText.value);
-
-  // Alert the copied text
-  alert("Text copied to clipboard");
-}
-</script>  
 
 <!-- PendingTasksModal -->
 <div class="modal fade" id="Modal{{line[0]}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -332,54 +379,31 @@ function copyTask{{line[0]}}() {
 		<input type="text" class="form-control" id="taskDetails{{line[0]}}" value="{{line[2]}}" style="visibility:hidden"></input>
 		<input type="hidden" class="form-control" rows="1" value="{{line[3]}}" readonly id="taskSystemCheck{{line[0]}}"></input><br>
 		<textarea class="form-control" rows="10">{{line[2]}}</textarea>
-		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTask{{line[0]}}()"></img></a>
+		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTextBox('taskDetails{{line[0]}}')"></img></a>
 		
       </div>
       <div class="modal-footer">
         <form method="post" action="/deleteTask">
         <input type="hidden" name="taskID" value={{line[0]}} required></input>
-        <button type="submit" class="btn btn-danger" id="deleteTaskButton{{line[0]}}" style="visibility:hidden">Delete Task</button>
+        <small class="text-muted text-left" id="deleteStatusText{{line[0]}}" style="visibility:hidden">System tasks cannot be deleted.</small></br>
+        <button type="submit" class="btn btn-danger float-right" id="deleteTaskButton{{line[0]}}">Delete Task</button>
+ 
+
         </form>
 
-<!-- Remove button if system task --!>
-<script>
-window.onload = function() {
-  var inputValue = document.getElementById('taskSystemCheck{{line[0]}}').value;
-  if (inputValue.toLowerCase().includes("system")) {
-    document.getElementById('deleteTaskButton{{line[0]}}').style.visibility = 'hidden';
-  } else {
-    document.getElementById('deleteTaskButton{{line[0]}}').style.visibility = 'visible';
-  }
-};
+ 
 
-    </script>
-      </div>
+</div>
     </div>
   </div>
 </div>
 {% endfor %}
-<!-- End Pending Tasks Modal --!>
+<!-- End Pending Tasks Modal -->
 
 
 <!-- CompletedTasksModal -->
 {% for line in completedTasks %}
 
-<script>
-function copyCompletedTask{{line[0]}}() {
-  // Get the text field
-  var copyText = document.getElementById("completedTasks{{line[0]}}");
-
-  // Select the text field
-  copyText.select();
-  copyText.setSelectionRange(0, 99999); // For mobile devices
-
-   // Copy the text inside the text field
-  navigator.clipboard.writeText(copyText.value);
-
-  // Alert the copied text
-  alert("Text copied to clipboard");
-}
-</script>
 
 <div class="modal fade" id="completedTasksModal{{line[0]}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -393,7 +417,7 @@ function copyCompletedTask{{line[0]}}() {
       <div class="modal-body">
 		<input type="text" class="form-control" id="completedTasks{{line[0]}}" value="{{line[2]}}" style="visibility:hidden"></input>
 		<textarea class="form-control" rows="10">{{line[2]}}</textarea>
-		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyCompletedTask{{line[0]}}()"></img></a>
+		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTextBox('completedTasks{{line[0]}}')"></img></a>
 		
       </div>
       <div class="modal-footer">
@@ -402,11 +426,9 @@ function copyCompletedTask{{line[0]}}() {
   </div>
 </div>
 {% endfor %}
-<!-- End Completed Tasks Modal --!>
+<!-- End Completed Tasks Modal -->
 
-
-
-<!-- Check Ins Modal --!>
+<!-- Check Ins Modal -->
 <div class="modal fade" id="modalCheckIns" tabindex="-1" role="dialog" aria-labelledby="modalCheckIns" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -442,7 +464,7 @@ function copyCompletedTask{{line[0]}}() {
     </div>
   </div>
 </div>
-<!-- End Check Ins Modal --!>
+<!-- End Check Ins Modal -->
 
 <div class="modal fade" id="modalAddTask" tabindex="-1" role="dialog" aria-labelledby="modalAddTask" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -463,16 +485,16 @@ function copyCompletedTask{{line[0]}}() {
         </div>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-secondary">Submit Task</button>
+        <button type="submit" class="btn btn-primary">Submit Task</button>
 	</form>
       </div>
     </div>
 </div>
 </div>
-<!-- END Add Task --!>
+<!-- END Add Task -->
 
 
-<!-- Begin change time --!>
+<!-- Begin change time -->
 <div class="modal fade" id="modalChangeTime" tabindex="-1" role="dialog" aria-labelledby="modalChangeTime" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -496,15 +518,15 @@ function copyCompletedTask{{line[0]}}() {
     <input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
     </div>
     <div class="modal-footer">
-        <button type="submit" class="btn btn-secondary">Submit Task</button>
+        <button type="submit" class="btn btn-primary">Submit Task</button>
         </form>
       </div>
 </div>
 </div>
 </div>
-<!-- End Change Time Modal --!>
+<!-- End Change Time Modal -->
 
-<!-- Begin Survey --!>
+<!-- Begin Survey -->
 <div class="modal fade" id="modalSurvey" tabindex="-1" role="dialog" aria-labelledby="modalSurvey" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -541,71 +563,18 @@ function copyCompletedTask{{line[0]}}() {
     <input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
     </div>
     <div class="modal-footer">
-        <button type="submit" class="btn btn-secondary">Submit Task</button>
+        <button type="submit" class="btn btn-primary">Submit Task</button>
         </form>
       </div>
 </div>
 </div>
 </div>
-<!-- End Survey Modal --!>
-
-
-<!-- Survey Data Modal -->
-{% for line in surveyData %}
-
-<div class="modal fade" id="PlaceholdsurveyModal{{line[0]}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Survey Details</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-                <textarea class="form-control" rows="10">{{line[4]}}</textarea>
-                <a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTask{{line[0]}}()"></img></a>
-
-      </div>
-      <div class="modal-footer">
-        <form method="post" action="/deleteTask">
-        <input type="hidden" name="taskID" value={{line[0]}} required></input>
-        <button type="submit" class="btn btn-danger">Delete Task</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-{% endfor %}
-<!-- End Survey Data --!>
-
+<!-- End Survey Modal -->
 
 </div>
 
 
-<!-- Start Edit Implant Modal --!>
-<script>
-function unlockSettings() {
-  if (document.getElementById("updateSettings").checked) {
-    disableForm(false);
-  }
-  if (!document.getElementById("updateSettings").checked) {
-    disableForm(true);
-  }
-
-}
-
-function disableForm(flag) {
-  var elements = document.getElementsByClassName("updateSettings");
-  for (var i = 0, len = elements.length; i < len; ++i) {
-    elements[i].readOnly = flag;
-    elements[i].disabled = flag;
-  }
-}
-
-
-</script>
-
+<!-- Start Edit Implant Modal -->
 
 <div class="modal fade" id="modalEditImplant" tabindex="-1" role="dialog" aria-labelledby="modalEditImplant" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
@@ -630,7 +599,7 @@ function disableForm(flag) {
 <form>
 <div class="form-check">
 <input class="form-check-input" type="checkbox" value='' id="updateSettings" name="updateSettings" onclick="unlockSettings()"></input>
-<label class="form-check-label" for="updateC2">Update Settings</label>
+<label class="form-check-label" for="updateC2">Update All Settings</label>
 </div>
 
 <div class="form-group mt-3">
@@ -655,14 +624,15 @@ function disableForm(flag) {
                 <option value="1">1 minute</option>
                 <option value="0">15 Seconds</option></select>
 </div>
-        </br><button type="submit" class=" btn btn-primary float-right">Update Settings</button>
+        </br><button type="submit" class=" btn btn-primary float-right">Save Changes</button>
 </form>
 <br><br><br>
 <hr class="mt-3 mb-2"/>
 <label for="installLines">Install Lines</label>
-<select class="form-control updateSettings" id="installChooser" onchange="updateTextarea(this.value)">
+<select class="form-control" id="installChooser" onchange="updateTextarea(this.value)">
+        <option value="Choose a beacon interval." selected="selected">Choose</option>
         <option value="{{installLines[5]}}">4 hours</option>
-        <option value="{{installLines[4]}}" selected="selected">1 Hour</option>
+        <option value="{{installLines[4]}}">1 Hour</option>
         <option value="{{installLines[3]}}">30 Minutes</option>
         <option value="{{installLines[2]}}">15 Minutes</option>
         <option value="{{installLines[1]}}">1 minute</option>
@@ -670,48 +640,77 @@ function disableForm(flag) {
         <option value="{{installLines[6]}}">Uninstall</option>
 </select>
 
-<script>
-function updateTextarea(value) {
-    document.getElementById('installLines').value = value;
-}
-</script>
+
 
 <br>
-<textarea class="form-control" rows="10" id="installLines">Choose a beacon interval.</textarea>
-<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyInstallLines()"></img></a>
+<textarea class="form-control" rows="5" id="installLines" readonly>Choose a beacon interval.</textarea>
+<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTextBox('installLines')"></img></a>
       
+<br><br><br>
 
-</div>
+<hr class="mt-3 mb-2"/>
+    <form id="uninstallImplant" method="post" action="/uninstallImplant" class="form-floating">
+        <br><h5>Uninstall Implant </h5>
+          <div class="form-check">
+          <input type="hidden" value="{{implantDetails[0][0]}}" name="UUID"></input>
+          <input class="form-check-input" type="checkbox" value='' id="checkUninstall" onclick="unlockUninstall()"></input>
+          <label class="form-check-label" for="checkUninstall">Check box to unlock uninstall button.</label>
+          </div>
+        <button id="uninstallButton" class="form-control button btn-disabled" type="submit" disabled>Task Uninstall</button>
+    </form>
+
+
+
+<br><br>
+<hr class="mt-3 mb-2"/>
+    <form id="deleteImplant" method="post" action="/deleteImplant" class="form-floating">
+	<br><h5>Delete Implant </h5>
+        <small class="text-muted text.danger" id="deleteStatusText">Enter Implant ID (case-sensative) to delete implant. This action cannot be undone.</small>
+        <input type="text" class="form-control is-invalid" id="deleteField" name="deleteImplantID">
+       <br>  
+        <button id="deleteButton" class="form-control button btn-disabled" type="submit" disabled>Delete Implant</button>
+    </form>
+
+    <!--
+     * This script handles the behavior of the delete field in the implants.html file.
+     * It listens for changes in the input field and updates the status text and submit button accordingly.
+     -->
+    <script>
+      const inputField = document.querySelector('#deleteField');
+      const statusText = document.querySelector('#deleteStatusText');
+      const submitButton = document.querySelector('#deleteButton');
+
+      inputField.addEventListener('input', function () {
+        const inputValue = inputField.value;
+        if (inputValue === "{{ implantDetails[0][0] }}") {
+          statusText.textContent = 'Are you sure? This cannot be undone.';
+          submitButton.removeAttribute('disabled'); // Enable the submit button
+          inputField.classList.remove('is-invalid'); // Remove the 'is-invalid' class
+          submitButton.classList.add('btn-danger');
+          statusText.classList.add('text-danger');
+          statusText.classList.remove('text-muted');
+        } else {
+          statusText.textContent = 'Enter Implant ID (case-sensitive) to delete implant';
+          submitButton.setAttribute('disabled', true); // Disable the submit button
+          inputField.classList.add('is-invalid'); // Add the 'is-invalid' class
+          submitButton.classList.remove('btn-danger');
+          statusText.classList.remove('text-danger');
+          statusText.classList.add('text-muted');
+        }
+      });
+    </script>
+
+  </div>
 <br><br>
       <div class="modal-footer">
      </div>
     </div>
+
+
   </div>
 </div>
-
-<script>
-function copyInstallLines() {
-  // Get the text field
-  var copyText = document.getElementById("installLines");
-
-  // Select the text field
-  copyText.select();
-  copyText.setSelectionRange(0, 99999); // For mobile devices
-
-   // Copy the text inside the text field
-  navigator.clipboard.writeText(copyText.value);
-
-  // Alert the copied text
-  alert("Text copied to clipboard");
-}
-</script>  
-
-
-
-<!-- End Edit Implant Modal --!>
+<!-- End Edit Implant Modal -->
 </body>
-
-
 
 </html>
 

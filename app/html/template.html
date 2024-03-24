@@ -1,0 +1,158 @@
+<!doctype html>
+
+<head>
+
+<html lang="en">
+
+<style>
+
+.nav-pills .pill-1 .nav-link:not(.active) {
+    background-color: #240b30 ;
+    color: white
+}
+
+
+/* active (faded) */
+.nav-pills .pill-1 .nav-link.active {
+    background-color: #212529;
+    color: white;
+}
+
+.footer {
+position: fixed;
+width: 100%;
+left: 0;
+bottom: 0;
+color: maroon;
+text-align: center;
+background-color: #573866;
+}
+
+.dark-purple {
+background-color:#240b30
+}
+
+
+</style>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="static/js/jquery-3.2.1.slim.min.js"></script>
+    <script src="static/js/popper.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+
+    <title>PowerBeacon</title>
+ </head>
+
+
+<body style="background-color: #573866">
+
+<!--Navbar Start-->
+<div class="container">
+
+<nav class="navbar navbar-dark dark-purple">
+
+   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+ 
+	<span class="navbar-text h2">PowerBeacon</span>
+	<a class="navbar-brand" href="/implants"><img src="/static/images/logo_black_nobg.png" width="100" height="100" class="d-inline-block align-center" alt="">
+	</a>
+   
+  <div class="collapse navbar-collapse" id="navbarText">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="#">Implants <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Listening Posts</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Tools</a>
+      </li>
+    </ul>
+ 
+  </div>
+</nav>
+</div>
+<!-- Navbar end-->
+
+
+
+<!--Start of Container-->
+<p>
+<div class="container">
+
+<!-- Flashes and Errors -->
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  <strong>{{error}}</strong> You should check in on some of those fields below.
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{% endif %}
+
+
+
+{% with messages = get_flashed_messages() %}  
+         {% if messages %}  
+               {% for message in messages %}  
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+  <strong>{{ message }}</strong> 
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+
+
+               {% endfor %}  
+         {% endif %}  
+{% endwith %}  
+<!-- End Flashes and Errors -->
+
+<!-- Auto Close Alerts Script 
+<script>
+$(document).ready(function() {
+    setTimeout(function() {
+        $(".alert").alert('close');
+    }, 3000);
+});
+</script>
+
+<!-- I'm not sure I like the auto close -->
+
+
+
+
+<div class="container-fluid text-white rounded p-4 dark-purple " >
+
+
+</div>
+<!-- Header Card End -->
+</br></br>
+
+
+
+
+
+</div><!--End of Primary Card-->
+
+<footer class="footer dark-purple">
+    <span class="text-muted float-right">github.com/ninjakilpirate&nbsp&nbsp  </span>
+</footer>
+
+
+</body>
+
+
+
+</html>
+
