@@ -7,6 +7,7 @@ import MySQLdb
 import lib.pbLibrary as pb
 
 
+
 app = Flask(__name__,template_folder='html')
 app.secret_key = "1234"
 
@@ -18,40 +19,79 @@ password = 't00r'
 database = 'powerbeacon'
 myConnection = MySQLdb.connect( host=hostname, user=username, passwd=password, db=database )
 
-
+#Routes
 @app.route('/',methods=['GET','POST'])
 def index():
     return redirect(url_for('implants'))
+
+
+@app.route('/selectImplant',methods=['GET','POST'])
+def selectImplant():
+    myConnection.commit()
+    error=None
+    if request.method == 'POST':
+        try:
+            cookie = request.form['UUID']
+            resp = make_response(redirect('/implants'))
+            resp.set_cookie('implant_id',cookie)
+            return resp
+        except:
+            error = "Failed to set implant"
+            c2list = pb.getC2List(myConnection)
+            implantList = pb.getImplantList(myConnection)
+            return render_template('selectImplant.html',c2list=c2list,implantList=implantList, error=error)
+    else:
+        implantList = pb.getImplantList(myConnection)
+        c2list = pb.getC2List(myConnection)
+        return render_template('selectImplant.html',c2list=c2list,implantList=implantList,error=error)
+
+@app.route('/listeningPosts',methods=['GET','POST'])
+def listeningPosts():
+    myConnection.commit()
+    error=None
+    if request.method == 'POST':
+        listeningposts = pb.getListeningPosts(myConnection)
+        return render_template('listeningposts.html',listeningposts=listeningposts,error=error)
+    else:
+        listeningPosts = pb.getListeningPosts(myConnection)
+        return render_template('listeningposts.html',listeningPosts=listeningPosts,error=error)
+
 
 
 @app.route('/implants',methods=['GET','POST'])
 def implants():
     myConnection.commit()
     error=None
-#    cookie = request.cookies.get("implant_id")
-    cookie = "NewTest"
-    if cookie:  #check if a cookie exists, otherwise send to implant selection screen
-        UUID = cookie
+    cookie = request.cookies.get("implant_id")
+    #cookie = "NewTest"
+    
+    try:
+        if cookie:  #check if a cookie exists, otherwise send to implant selection screen
+            UUID = cookie
 
-        checkIns=pb.getCheckIns(myConnection,UUID,"10")    #getting data to send to page
-        implantDetails=pb.getDetails(myConnection,UUID)
-        pendingTasks=pb.getTasks(myConnection,UUID,"0")
-        completedTasks=pb.getTasks(myConnection,UUID,"1")
-        surveyData = pb.getSurveyList(myConnection,UUID) 
-        C2List = pb.getC2List(myConnection)
-        
-        #Get all the install lines to send to the page
-        zeroInstall = pb.generateInstall(myConnection,UUID,0)[0]
-        oneInstall = pb.generateInstall(myConnection,UUID,1)[0]
-        twoInstall = pb.generateInstall(myConnection,UUID,2)[0]
-        threeInstall = pb.generateInstall(myConnection,UUID,3)[0]
-        fourInstall = pb.generateInstall(myConnection,UUID,4)[0]
-        fiveInstall = pb.generateInstall(myConnection,UUID,5)[0]
-        uninstall = pb.generateInstall(myConnection,UUID,0)[1]
-        installLines = [zeroInstall,oneInstall,twoInstall,threeInstall,fourInstall,fiveInstall,uninstall]
-
-
-        return render_template('implants.html',implantDetails=implantDetails,checkIns=checkIns,UUID=implantDetails[0][0],pendingTasks=pendingTasks,surveyData=surveyData,completedTasks=completedTasks,C2List=C2List,installLines=installLines,error=error)
+            
+            callbacks=pb.getCallbacks(myConnection,UUID,"10")
+            pendingTasks=pb.getTasks(myConnection,UUID,"0")
+            completedTasks=pb.getTasks(myConnection,UUID,"1")
+            surveyData = pb.getSurveyList(myConnection,UUID) 
+            C2List = pb.getListeningPosts(myConnection)
+            implant = pb.getImplant(myConnection,UUID)
+            #Get all the install lines to send to the page
+            zeroInstall = pb.generateInstall(myConnection,UUID,0)[0]
+            oneInstall = pb.generateInstall(myConnection,UUID,1)[0]
+            twoInstall = pb.generateInstall(myConnection,UUID,2)[0]
+            threeInstall = pb.generateInstall(myConnection,UUID,3)[0]
+            fourInstall = pb.generateInstall(myConnection,UUID,4)[0]
+            fiveInstall = pb.generateInstall(myConnection,UUID,5)[0]
+            uninstall = pb.generateInstall(myConnection,UUID,0)[1]
+            installLines = [zeroInstall,oneInstall,twoInstall,threeInstall,fourInstall,fiveInstall,uninstall]
+            return render_template('implants.html',implant=implant,pendingTasks=pendingTasks,surveyData=surveyData,completedTasks=completedTasks,C2List=C2List,callbacks=callbacks,installLines=installLines,error=error)
+    except Exception as e:
+        print(e)
+        error = f"Error accessing implant \"{UUID}.\"  Please select a new implant."
+        c2list = pb.getC2List(myConnection)
+        implantList = pb.getImplantList(myConnection)
+        return render_template('selectImplant.html',c2list=c2list,implantList=implantList, error=error)
     else:
         return redirect('/selectImplant') 
 
@@ -68,11 +108,10 @@ def addTask():
             flash('Task Added')
             return redirect(url_for('implants'))
         except:
-            error = "Failed to add task"
+            error = "Failed to add task."
             return redirect(url_for('implants'))
+
     return redirect(url_for('implants'))
-
-
 
 @app.route('/deleteTask',methods=['GET','POST'])
 def deleteTask():
@@ -115,7 +154,6 @@ def uninstallImplant():
         pb.uninstallImplant(myConnection,UUID)
         return redirect(url_for('implants'))
     return redirect(url_for('implants'))
-
 
 @app.route('/changeTime',methods=['GET','POST'])
 def changeTime():
@@ -162,16 +200,42 @@ def getData():
         
     return redirect(url_for('implants'))
 
+@app.route('/addImplant',methods=['GET','POST'])
+def addImplant():
+    error = None
+    if request.method == 'POST':
+        UUID = request.form['UUID']
+        key = request.form['key']
+        c2 = request.form['c2']
+        filter = request.form['filter']
+        notes = request.form['notes']
+        consumer = request.form['consumer']
+        pb.addImplant(myConnection,UUID,key,notes,c2,filter,consumer)
+        flash("Implant Added")
+        return redirect(url_for('selectImplant'))
+    return redirect(url_for('implants'))
+        
 @app.route('/deleteImplant',methods=['GET','POST'])
 def deleteImplant():
     error = None
     if request.method == 'POST':
         UUID=request.form['deleteImplantID']
         pb.deleteImplant(myConnection,UUID)
-        return redirect(url_for('implants'))
         flash("Implant Deleted")
+        resp = make_response(redirect('/implants'))
+        resp.set_cookie('implant_id','', expires=0)
+        return resp
     return redirect(url_for('implants'))
 
+@app.route('/deleteListeningPost',methods=['GET','POST'])
+def deleteListeningPost():
+    error = None
+    if request.method == 'POST':
+        ID=request.form['lpID']
+        pb.deleteListeningPost(myConnection,ID)
+        flash("Listening Post Deleted")
+        return redirect(url_for('listeningPosts'))
+    return redirect(url_for('listeningPosts'))
 
 if __name__ == "__main__":
     #app.run(ssl_context=('adhoc'),host='0.0.0.0',port=5000,debug=True)  //For HTTPS, complicates things for now
