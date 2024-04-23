@@ -1,5 +1,37 @@
+#Clone PowerBeacon
+git clone https://github.com/ninjakilpirate/PowerBeacon.git
+
+#start mysql
+sudo systemctl enable mysql
+sudo systemctl start mysql
+
+
+#set the root password, whatever this is set to needs to match app.py and powerbeaconServer.py settings
+sudo mysql -u root
+SET PASSWORD FOR 'root'@'localhost' = PASSWORD('t00r');
+exit;
+
+#import the database structure
 mysql -u root -p
 CREATE DATABASE powerbeacon;
-
+exit;
 mysql -u root -p powerbeacon < powerbeaconDatabase.sql
 
+#Flask is installed on Kali by default now.  If it isn't there, pip3 install flask or check the requirements folder for a copy
+
+#Start the app
+cd app
+chmod +x app
+./app
+
+#start the LP
+cd ..
+chmod +x powerbeaconServer.py
+./powerbeaconServer.py -p 80 -b 192.168.239.128
+
+#to create an SSL cert for an SSL server
+cd tools
+chmod +x create_cert.sh
+./create_cert.sh
+
+#now start the server with --ssl true
