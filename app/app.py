@@ -286,9 +286,8 @@ def tools():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', type=int, required=True)
+    parser.add_argument('-p', type=int, required=False)
     parser.add_argument('-b', type=str, required=False)
-    parser.add_argument('--ssl',type=str, required=False)
     args = parser.parse_args()
     
     if args.b:
