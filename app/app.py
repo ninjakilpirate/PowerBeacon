@@ -4,6 +4,7 @@ from flask import Flask,render_template,request,redirect,url_for,flash,make_resp
 from base64 import b64encode
 import MySQLdb
 import lib.pbLibrary as pb
+import argparse
 
 
 
@@ -284,6 +285,19 @@ def tools():
     return render_template('tools.html',encodedData=encodedData,decodedData=decodedData,error=error)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', type=int, required=True)
+    parser.add_argument('-b', type=str, required=False)
+    parser.add_argument('--ssl',type=str, required=False)
+    args = parser.parse_args()
     
-    app.run(host='0.0.0.0',port=5000,debug=True)
+    if args.b:
+        host = args.b
+    else:
+        host = '0.0.0.0'
+    if args.p:
+        port = args.p
+    else:
+        port = 5000
+    app.run(host,port,debug=True)
 
