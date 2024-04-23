@@ -1,8 +1,8 @@
--- MySQL dump 10.17  Distrib 10.3.22-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19  Distrib 10.11.4-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: powerbeacon
 -- ------------------------------------------------------
--- Server version	10.3.22-MariaDB-1
+-- Server version	10.11.4-MariaDB-1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,6 +14,32 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `callbackAddresses`
+--
+
+DROP TABLE IF EXISTS `callbackAddresses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `callbackAddresses` (
+  `name` varchar(100) NOT NULL,
+  `address` varchar(100) DEFAULT NULL,
+  `verify_key` varchar(25) DEFAULT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `callbackAddresses`
+--
+
+LOCK TABLES `callbackAddresses` WRITE;
+/*!40000 ALTER TABLE `callbackAddresses` DISABLE KEYS */;
+INSERT INTO `callbackAddresses` VALUES
+('Default','http://127.0.0.1','MTcxMzkxMjk1NS42MTg5Nzc4');
+/*!40000 ALTER TABLE `callbackAddresses` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `checkins`
@@ -30,7 +56,7 @@ CREATE TABLE `checkins` (
   PRIMARY KEY (`id`),
   KEY `UUID` (`UUID`),
   CONSTRAINT `checkins_ibfk_1` FOREIGN KEY (`UUID`) REFERENCES `implants` (`UUID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=394 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=3069 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -58,7 +84,7 @@ CREATE TABLE `datastore` (
   PRIMARY KEY (`id`),
   KEY `UUID` (`UUID`),
   CONSTRAINT `datastore_ibfk_1` FOREIGN KEY (`UUID`) REFERENCES `implants` (`UUID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -81,8 +107,11 @@ CREATE TABLE `implants` (
   `UUID` varchar(50) NOT NULL,
   `implantkey` varchar(50) DEFAULT NULL,
   `notes` varchar(250) DEFAULT NULL,
+  `C2` varchar(250) DEFAULT NULL,
+  `filter` varchar(250) DEFAULT NULL,
+  `consumer` varchar(250) DEFAULT NULL,
   PRIMARY KEY (`UUID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -91,6 +120,8 @@ CREATE TABLE `implants` (
 
 LOCK TABLES `implants` WRITE;
 /*!40000 ALTER TABLE `implants` DISABLE KEYS */;
+INSERT INTO `implants` VALUES
+('Template','Template','This is a pre-installed implant template','http://127.0.0.1','PowerBeaconTemplate','PowerBeaconTemplate');
 /*!40000 ALTER TABLE `implants` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -105,14 +136,13 @@ CREATE TABLE `tasks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `task` varchar(8000) DEFAULT NULL,
   `time_complete` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `done` tinyint(1) NOT NULL DEFAULT 0,
   `UUID` varchar(100) DEFAULT NULL,
   `is_complete` tinyint(1) DEFAULT 0,
   `notes` varchar(2500) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `UUID` (`UUID`),
   CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`UUID`) REFERENCES `implants` (`UUID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=256 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=402 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -133,4 +163,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-01-17 21:42:46
+-- Dump completed on 2024-04-23 15:58:40

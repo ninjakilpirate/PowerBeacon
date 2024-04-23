@@ -1,7 +1,5 @@
 mysql -u root -p
 CREATE DATABASE powerbeacon;
 
-mysql -u root -p powerbeacon < powerbeacon.sql
+mysql -u root -p powerbeacon < powerbeaconDatabase.sql
 
-
-[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};(new-object net.webclient).Uploadstring('https://192.168.21.129:443', "{ 'UUID':'TEST_UUID', 'key':'12345', 'event' : 'req' }")

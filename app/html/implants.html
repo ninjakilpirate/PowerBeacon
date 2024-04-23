@@ -143,14 +143,14 @@ function unlockUninstall() {
    
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="/selectImplant">Select Implant <span class="sr-only">(current)</span></a>
+      <li class="nav-item">
+        <a class="nav-link" href="/selectImplant">Implant Selection<span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="/listeningPosts">Listening Posts</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Tools</a>
+        <a class="nav-link" href="/tools">Tools</a>
       </li>
     </ul>
  
@@ -171,7 +171,7 @@ function unlockUninstall() {
 <!-- Flashes and Errors -->
 {% if error %}
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-  <strong>{{error}}</strong> You should check in on some of those fields below.
+  <strong>{{error}}</strong> 
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">&times;</span>
   </button>
@@ -217,19 +217,19 @@ $(document).ready(function() {
 
         <div class="row">
         <div class="col-lg-6">
-        <h1 class="display-4">{{implantDetails[0][0]}}</h1>
-	<p class="h6 m-0"> Notes: {{implantDetails[0][2]}}</p>
-  <br><strong>Callback URL:</strong> {{implantDetails[0][3]}}
-  <br><strong>WMI Filter:</strong> {{implantDetails[0][4]}}
-  <br><strong>WMI Consumer:</strong> {{implantDetails[0][5]}}
+        <h1 class="display-4">{{implant.name}}</h1>
+	<p class="h6 m-0"> Notes: {{implant.notes}}</p>
+  <br><strong>Callback URL:</strong> {{implant.c2}}
+  <br><strong>WMI Filter:</strong> {{implant.filter}}
+  <br><strong>WMI Consumer:</strong> {{implant.consumer}}
 <br><br></br></br></div>
 <div class="col-md-auto"></div>        
 <div class="col-sm">
         <div class="media float-right">
 		<div class="media-body">
-         	<p class="h5 float-right"><u>Check In History</p></br></u>
-                {% for line in checkIns[:5] %}
-                <p class="h6 float-right">{{ line[3] }}</p><br>
+         	<p class="h5 float-right"><u>Callback History</p></br></u>
+                {% for callback in callbacks[:5] %}
+                <p class="h6 float-right">{{ callback.time }}</p><br>
                 {% endfor %}
 		</div>
 		<img class="ml-2 align-self-start" src="/static/images/expand.png" height="40px" width="40px" data-toggle="modal" data-target="#modalCheckIns"></img><span><br><br>
@@ -281,11 +281,11 @@ $(document).ready(function() {
   </thead>
   <tbody>
 
-    {% for line in pendingTasks %}
+    {% for task in pendingTasks %}
 
-        <tr data-toggle="modal" data-target="#Modal{{line[0]}}" onClick = "disableTaskDelete('{{line[0]}}')">
-            <td class="text-center">{{line[0]}}</td>
-            <td class="text-center">{{line[3]}}</td>
+        <tr data-toggle="modal" data-target="#Modal{{task.id}}" onClick = "disableTaskDelete('{{task.id}}')">
+            <td class="text-center">{{task.id}}</td>
+            <td class="text-center">{{task.notes}}</td>
        </tr>
     {% endfor %}
 </table>
@@ -305,11 +305,11 @@ $(document).ready(function() {
   </thead>
   <tbody>
 
-    {% for line in completedTasks %}
-        <tr data-toggle="modal" data-target="#completedTasksModal{{line[0]}}">
-            <td class="text-center">{{line[0]}}</td>
-            <td class="text-center">{{line[3]}}</td>
-            <td class="text-center">{{line[4]}}</td>
+    {% for task in completedTasks %}
+        <tr data-toggle="modal" data-target="#completedTasksModal{{task.id}}">
+            <td class="text-center">{{task.id}}</td>
+            <td class="text-center">{{task.notes}}</td>
+            <td class="text-center">{{task.time_complete}}</td>
        </tr>
     {% endfor %}
 </table>
@@ -330,16 +330,16 @@ $(document).ready(function() {
   </thead>
   <tbody>
 
-    {% for line in surveyData %}
-        <tr data-toggle="modal" data-target="#surveyModal{{line[0]}}">
+    {% for survey in surveyData %}
+        <tr data-toggle="modal" data-target="#surveyModal{{survey.id}}">
             <td class="w-10 p-2 class="text-center">
             <form method="post" target="_blank" action="/displaySurvey">
-            <input type="hidden" name="ID" value={{line[0]}} required>
-<div class="text-center"><button type="submit" class="btn btn-secondary text-center" value="{{line[0]}}">View</button></div>
+            <input type="hidden" name="ID" value={{survey.id}} required>
+<div class="text-center"><button type="submit" class="btn btn-secondary text-center" value="{{survey.id}}">View</button></div>
             </form>
             </td>
-            <td class="text-nowrap text-center align-middle">{{line[2]}}</td>
-            <td class="text-nowrap text-center align-middle">{{line[3]}}</td>
+            <td class="text-nowrap text-center align-middle">{{survey.time_delivered}}</td>
+            <td class="text-nowrap text-center align-middle">{{survey.details}}</td>
        </tr>
     {% endfor %}
 </table>
@@ -362,11 +362,11 @@ $(document).ready(function() {
 
 <!-- Pending Task Modals -->
 
-{% for line in pendingTasks %}
+{% for task in pendingTasks %}
 
 
 <!-- PendingTasksModal -->
-<div class="modal fade" id="Modal{{line[0]}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="Modal{{task.id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -376,17 +376,17 @@ $(document).ready(function() {
         </button>
       </div>
       <div class="modal-body">
-		<input type="text" class="form-control" id="taskDetails{{line[0]}}" value="{{line[2]}}" style="visibility:hidden"></input>
-		<input type="hidden" class="form-control" rows="1" value="{{line[3]}}" readonly id="taskSystemCheck{{line[0]}}"></input><br>
-		<textarea class="form-control" rows="10">{{line[2]}}</textarea>
-		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTextBox('taskDetails{{line[0]}}')"></img></a>
+		<input type="text" class="form-control" id="taskDetails{{task.id}}" value="{{task.task}}" style="visibility:hidden"></input>
+		<input type="hidden" class="form-control" rows="1" value="{{task.notes}}" readonly id="taskSystemCheck{{task.id}}"></input><br>
+		<textarea class="form-control" rows="10">{{task.task}}</textarea>
+		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTextBox('taskDetails{{task.id}}')"></img></a>
 		
       </div>
       <div class="modal-footer">
         <form method="post" action="/deleteTask">
-        <input type="hidden" name="taskID" value={{line[0]}} required></input>
-        <small class="text-muted text-left" id="deleteStatusText{{line[0]}}" style="visibility:hidden">System tasks cannot be deleted.</small></br>
-        <button type="submit" class="btn btn-danger float-right" id="deleteTaskButton{{line[0]}}">Delete Task</button>
+        <input type="hidden" name="taskID" value={{task.id}} required></input>
+        <small class="text-muted text-left" id="deleteStatusText{{task.id}}" style="visibility:hidden">System tasks cannot be deleted.</small></br>
+        <button type="submit" class="btn btn-danger float-right" id="deleteTaskButton{{task.id}}">Delete Task</button>
  
 
         </form>
@@ -402,10 +402,10 @@ $(document).ready(function() {
 
 
 <!-- CompletedTasksModal -->
-{% for line in completedTasks %}
+{% for task in completedTasks %}
 
 
-<div class="modal fade" id="completedTasksModal{{line[0]}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="completedTasksModal{{task.id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -415,9 +415,9 @@ $(document).ready(function() {
         </button>
       </div>
       <div class="modal-body">
-		<input type="text" class="form-control" id="completedTasks{{line[0]}}" value="{{line[2]}}" style="visibility:hidden"></input>
-		<textarea class="form-control" rows="10">{{line[2]}}</textarea>
-		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTextBox('completedTasks{{line[0]}}')"></img></a>
+		<input type="text" class="form-control" id="completedTasks{{task.id}}" value="{{task.task}}" style="visibility:hidden"></input>
+		<textarea class="form-control" rows="10">{{task.task}}</textarea>
+		<a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTextBox('completedTasks{{task.id}}')"></img></a>
 		
       </div>
       <div class="modal-footer">
@@ -447,10 +447,10 @@ $(document).ready(function() {
                         </tr>
                         </thead>
                         <tbody>
-                        {% for line in checkIns %}
+                        {% for callback in callbacks %}
                             <tr>
-                                <td>{{line[3]}}</td>
-                                <td>{{line[2]}}</td>
+                                <td>{{callback.time}}</td>
+                                <td>{{callback.gateway}}</td>
                            </tr>
                         {% endfor %}
 
@@ -481,7 +481,7 @@ $(document).ready(function() {
         <div class="form-group">
         <textarea class="form-control" name="task" placeholder="Enter task to run" rows="10"required></textarea></br>
         <input type="text" class="form-control" name="notes" placeholder="Enter task notes" required></input>
-	<input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
+	<input type="hidden" class="form-control" name="UUID" required value={{implant.name}}></input></br>
         </div>
       </div>
       <div class="modal-footer">
@@ -515,7 +515,7 @@ $(document).ready(function() {
         <option value="1">1 minute</option>
         <option value="0">15 Seconds</option>
     </select>
-    <input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
+    <input type="hidden" class="form-control" name="UUID" required value={{implant.name}}></input></br>
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Submit Task</button>
@@ -560,7 +560,7 @@ $(document).ready(function() {
     </br> 
     
     <input type="text" class="form-control" name="notes" required placeholder="Enter Survey Note"></input></br>
-    <input type="hidden" class="form-control" name="UUID" required value={{implantDetails[0][0]}}></input></br>
+    <input type="hidden" class="form-control" name="UUID" required value={{implant.name}}></input></br>
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Submit Task</button>
@@ -580,18 +580,18 @@ $(document).ready(function() {
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalEditImplantLabel">{{implantDetails[0][0]}} Settings</h5>
+        <h5 class="modal-title" id="modalEditImplantLabel">{{implant.name}} Settings</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body">
 <form method="post" action="/updateSettings">
-<input class="form-control" type="hidden" value="{{implantDetails[0][0]}}" name="UUID" readonly></input>
-<input class="form-control" type="hidden" value="{{implantDetails[0][1]}}" name="key" readonly></input>
+<input class="form-control" type="hidden" value="{{implant.name}}" name="UUID" readonly></input>
+<input class="form-control" type="hidden" value="{{implant.key}}" name="key" readonly></input>
 <div class="form-group">
 	<label for="updatenotes">Update Notes</label>
-        <input type="text" class="form-control" id="updateNotes" value="{{implantDetails[0][2]}}" name="updateNotes"></input>
+        <input type="text" class="form-control" id="updateNotes" value="{{implant.notes}}" name="updateNotes"></input>
 </div>
 </br>
 <hr class="mt-3 mb-2"/>
@@ -605,16 +605,16 @@ $(document).ready(function() {
 <div class="form-group mt-3">
 	<label for="updateC2" >Callback Address</label>
 	<select class="form-control updateSettings" name="updateC2" id="updateC2" readonly disabled>
-		<option selected="selected" value="{{implantDetails[0][3]}}">{{implantDetails[0][3]}} (Current)</option>
-    {% for option in C2List %}
-		<option value="{{option[1]}}">{{option[0]}} ({{option[1]}})</option>
+		<option selected="selected" value="{{implant.c2}}">{{implant.c2}} (Current)</option>
+    {% for lp in C2List %}
+		<option value="{{lp.address}}">{{lp.id}} ({{lp.address}})</option>
 
    {% endfor %}
 	</select></br>
 	<label for="updateFilter">WMI Filter</label>
-	<input class="form-control updateSettings" type="text" value="{{implantDetails[0][4]}}" name="updateFilter" id="updateFilter" readonly></input></br>
+	<input class="form-control updateSettings" type="text" value="{{implant.filter}}" name="updateFilter" id="updateFilter" readonly></input></br>
 	<label for="updateConsumer">WMI Consumer</label>
-	<input class="form-control updateSettings" type="text" value="{{implantDetails[0][5]}}" name="updateConsumer" id="updateConsumer" readonly></input>
+	<input class="form-control updateSettings" type="text" value="{{implant.consumer}}" name="updateConsumer" id="updateConsumer" readonly></input>
         <label for="updateInterval">Interval After Update</label>
         <select class="form-control updateSettings" name="interval" id="interval" readonly disabled>
                 <option value="5">4 hours</option>
@@ -652,7 +652,7 @@ $(document).ready(function() {
     <form id="uninstallImplant" method="post" action="/uninstallImplant" class="form-floating">
         <br><h5>Uninstall Implant </h5>
           <div class="form-check">
-          <input type="hidden" value="{{implantDetails[0][0]}}" name="UUID"></input>
+          <input type="hidden" value="{{implant.name}}" name="UUID"></input>
           <input class="form-check-input" type="checkbox" value='' id="checkUninstall" onclick="unlockUninstall()"></input>
           <label class="form-check-label" for="checkUninstall">Check box to unlock uninstall button.</label>
           </div>
@@ -682,7 +682,7 @@ $(document).ready(function() {
 
       inputField.addEventListener('input', function () {
         const inputValue = inputField.value;
-        if (inputValue === "{{ implantDetails[0][0] }}") {
+        if (inputValue === "{{ implant.name }}") {
           statusText.textContent = 'Are you sure? This cannot be undone.';
           submitButton.removeAttribute('disabled'); // Enable the submit button
           inputField.classList.remove('is-invalid'); // Remove the 'is-invalid' class

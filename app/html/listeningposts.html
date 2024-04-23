@@ -1,0 +1,325 @@
+<!doctype html>
+
+
+
+
+  <head>
+
+
+<html lang="en">
+
+<style>
+.select-center {
+    text-align: center;
+    text-align-last: center;
+    -moz-text-align-last: center;
+}
+
+.nav-pills .pill-1 .nav-link:not(.active) {
+    background-color: #240b30 ;
+    color: white
+}
+
+
+/* active (faded) */
+.nav-pills .pill-1 .nav-link.active {
+    background-color: #212529;
+    color: white;
+}
+
+.footer {
+position: fixed;
+width: 100%;
+left: 0;
+bottom: 0;
+color: maroon;
+text-align: center;
+background-color: #573866;
+}
+
+.dark-purple {
+background-color:#240b30
+}
+
+
+
+.x7 {
+    box-shadow: inset 1px 1px 150px #000;
+}
+
+.x3 {
+    box-shadow: 0 0 15px hsla(281,63%,50%,1);
+}
+
+.full-width-button {
+    width: 100%;
+}
+</style>
+
+<script>
+function copyTextBox(textBox) {
+  // Get the text field
+  var copyText = document.getElementById(textBox);
+
+  // Select the text field
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); // For mobile devices
+
+   // Copy the text inside the text field
+  navigator.clipboard.writeText(copyText.value);
+
+  // Alert the copied text
+  alert("Text copied to clipboard");
+}
+
+</script>  
+
+
+
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="static/js/jquery-3.2.1.slim.min.js"></script>
+    <script src="static/js/popper.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+
+    <title>PowerBeacon</title>
+  </head>
+
+
+<body style="background-color: #573866">
+<!--Navbar Start-->
+<div class="container">
+
+<nav class="navbar navbar-dark dark-purple">
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+ 
+	<span class="navbar-text h2">PowerBeacon</span>
+	<a class="navbar-brand" href="/implants"><img src="/static/images/logo_black_nobg.png" width="100" height="100" class="d-inline-block align-center" alt="">
+	
+	</a>
+   
+  <div class="collapse navbar-collapse" id="navbarText">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/selectImplant">Implant Selection<span class="sr-only"></span></a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="/listeningPosts">Listening Posts</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/tools">Tools</a>
+      </li>
+    </ul>
+ 
+ 
+  
+	
+  </div>
+</nav>
+</div>
+<!-- Navbar end-->
+
+
+
+<!--Start of Container-->
+<p>
+<div class="container">
+
+<!-- Flashes and Errors -->
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  <strong>{{error}}</strong> 
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{% endif %}
+
+
+
+{% with messages = get_flashed_messages() %}  
+         {% if messages %}  
+               {% for message in messages %}  
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+  <strong>{{ message }}</strong> 
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+
+
+               {% endfor %}  
+         {% endif %}  
+{% endwith %}  
+<!-- End Flashes and Errors -->
+
+<!-- Auto Close Alerts Script 
+<script>
+$(document).ready(function() {
+    setTimeout(function() {
+        $(".alert").alert('close');
+    }, 3000);
+});
+</script>
+
+<!-- I'm not sure I like the auto close -->
+
+
+
+
+<div class="container-fluid text-white rounded p-4 dark-purple" >
+<h1 class="text-center">Select Listening Post</h1> 
+</br>
+<div class="row">
+<div class="col-8">
+
+  <div class="text-center">
+    <select class="form-control text-center select-center border-secondary" id="lpID" name="lpID">
+      {% for lp in listeningPosts %}
+      <option class="select-center" value="{{ loop.index0 }}">{{ lp.id }} : {{ lp.address }}</option>
+      {% endfor %}
+    </select>
+    </div>
+  </div>
+<div class="col">
+<button class="btn btn-dark full-width-button" id="editLPButton" data-toggle=modal data-target="#modalEditLP0">Edit</button>
+<script>
+  const dropdown = document.getElementById('lpID');
+  const button = document.getElementById('editLPButton');
+
+  dropdown.addEventListener('change', () => {
+    const selectedTarget = dropdown.value;
+    button.setAttribute('data-target', '#modalEditLP' + selectedTarget);
+  });
+</script>
+
+</div>
+
+</div>
+</div>
+
+<div class="container-fluid text-white rounded p-4 dark-purple" >
+
+  <button class="btn btn-dark full-width-button" data-toggle="modal" data-target="#addListeningPost">Add New Listening Post</button>
+    
+<br><br>
+</div>
+
+
+
+<footer class="footer dark-purple">
+  <span class="text-muted float-right">github.com/ninjakilpirate&nbsp&nbsp</span>
+</footer>
+
+
+
+<!-- Edit LP Modal-->
+{% for lp in listeningPosts %}
+<div class="modal fade" id="modalEditLP{{ loop.index0 }}" tabindex="-1" role="dialog" aria-labelledby="modalEditLP" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditImplantLabel">Listening Post Settings</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      Name: {{ lp.id }}<br>
+      Address: {{ lp.address }}<br>
+      Number of Implants Assigned:  {{ lp.connections_count }}<br>
+      {% if lp.connections_count > 0 %}
+      Assigned Implants:
+      {% for implant in lp.connections %}  
+        {{ implant }}{{ "," if not loop.last }}
+      {% endfor %}
+      {% endif %}
+      <br><br>Listening Post Validation Line
+      <textarea class="form-control" rows="10" id="validationLine{{loop.index0}}">{{ lp.validation }} </textarea>
+      
+      <a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" onclick="copyTextBox('validationLine{{loop.index0}}')"></img></a>
+      
+      <form action="/deleteListeningPost" method="post">
+        <input type="hidden" name="lpID" value="{{ lp.id }}">
+        <input type="hidden" id="connections_count" name="connections_count" value="{{ lp.connections_count }}">
+
+        <br><br><br>
+        {% if lp.connections_count == 0 %}<small class="text-muted">You must reassign all implants before deleting.</small>{% endif %}
+        
+        <button type="submit" class="btn btn-danger full-width-button" id="{{ loop.index0 }}DeleteButton" {% if lp.connections_count > 0 %} disabled {% endif %} >Delete Listening Post</button>
+        </form>
+
+<br><br><br>
+
+  </div>
+<br><br>
+      <div class="modal-footer">
+     </div>
+    </div>
+
+
+  </div>
+</div>
+<!-- end of Edit LP modal-->
+{% endfor %}
+
+<!--add listening post modal-->
+<div class="modal fade" id="addListeningPost" tabindex="-1" role="dialog" aria-labelledby="addListeningPost" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addListeningPostTitle">Add Listening Post</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+
+
+      
+      
+      <form action="/addListeningPost" method="post">
+      <div class="form-group">
+        
+        <label for="name">Listening Post Name</label>
+        <input type=""text" class="form-control" id="name" name="name" placeholder="Enter Listening Post Name">
+        <br><label for="address">Listening Post Address</label>
+        <input type="text" class="form-control" id="address" name="address" placeholder="Enter Listening Post Address">
+      </div>
+     
+        <button type="submit" class="btn btn-primary full-width-button" id="addListeningPostButton" >Add Listening Post</button>
+        </form>
+
+<br><br><br>
+
+  </div>
+<br><br>
+      <div class="modal-footer">
+     </div>
+    </div>
+
+
+  </div>
+</div>
+
+
+</head>
+<body>
+<form>
+
+
+</body>
+
+</html>
+

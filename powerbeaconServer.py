@@ -1,17 +1,16 @@
 #!/usr/bin/python3
 import MySQLdb
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import json
 import ast
 import time
 import threading
-import signal
 import sys
 import os
 from datetime import datetime
 import base64
 import argparse
 import ssl
+
 
 should_get=False             #controls whether thge server is active
 stop_threads=False           #stop the thread resetting should_get
@@ -90,20 +89,46 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         self._set_headers()
         try:
-            #Read the contents and convert to a dictionay formate we can use
+            # Read the contents and convert to a dictionary format we can use
             content_len = int(self.headers['Content-Length'])
             post_body = self.rfile.read(content_len)
             post_body = post_body.decode("utf-8")
             new_obj = ast.literal_eval(post_body)
-            IP=self.client_address[0]
+            IP = self.client_address[0]
         except:
             IP = self.client_address[0]
-            date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-            print(yellow+date_time+"[*]Request from  IP: " + IP + " :::Malformed Request"+default)
+            date_time = datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+            print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
             return 0
 
-        #Pull vars from dict
-        connection=MySQLdb.connect(host='127.0.0.1',user='root',password='t00r',database="powerbeacon")
+        # Pull vars from dict
+        connection = MySQLdb.connect(host='127.0.0.1', user='root', password='t00r', database="powerbeacon")
+        connection.commit()
+        event=new_obj["event"]
+        if event=="validate":
+            print("validate event")
+            try:
+                name=new_obj["name"]
+                key=new_obj["key"]
+                query = f"select verify_key from callbackAddresses where name='{name}'"
+                cursor=connection.cursor()
+                cursor.execute(query)
+                results=cursor.fetchall()
+                verify_key=results[0][0]
+                if verify_key==key:
+                    self.wfile.write("write-host Connection Validated".encode("utf-8"))
+                    date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                    print(f"{green}{date_time}[+]VALIDATE:::Incomming Validation from {IP}:::Server Connect Success{default}")
+                    connection.close()
+                    return 0
+                else:
+                    print(f"{red}{date_time}[-]VALIDATE:::Incomming Validation from {IP}:::Invalid Verification Key{default}")
+                    return 0
+            except:
+                date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
+                return 0
+        
         try:
             UUID=new_obj["UUID"]
             key=new_obj["key"]
@@ -111,7 +136,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         except:
             IP = self.client_address[0]
             date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-            print(yellow+date_time+"[*]Request from IP: " + IP + " :::Malformed Request"+default)
+            print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
             return 0
 
         cursor=connection.cursor()
@@ -125,7 +150,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             connection.close()
             return 0
         #Check if key matches    
-        query = "select * from implants where UUID='" + UUID +"' and implantkey='"+key+"'"
+        query = f"select * from implants where UUID='{UUID}' and implantkey='{key}'"
         cursor.execute(query)
         results=cursor.fetchall()
         if (len(results) > 0):
@@ -134,7 +159,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                 cursor.execute("INSERT INTO checkins (UUID,gateway) VALUES ('" + UUID +"','" + IP + "')")
                 cursor.execute("commit")
                 should_get = True
-                query = "select task from tasks where UUID='" + UUID +"' and is_complete = 0"  #check for tasks...we should only do this is it's a request.  fix this later
+                query = "select task from tasks where UUID='" + UUID +"' and is_complete = 0"  #check for tasks
                 cursor.execute(query)
                 results=cursor.fetchall() ###results are the tasks from the DB
                 
@@ -152,10 +177,9 @@ class HandleRequests(BaseHTTPRequestHandler):
                     connection.commit()
                     connection.close()
                     return 0
-                
                 else: #if no tasks
                     date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-                    print(date_time+"[-]Incomming Request from " + UUID + " at IP: " + IP + " :::No Tasking Available")
+                    print(f"{date_time}[-]Incomming Request from {UUID} at IP: {IP} :::No Tasking Available")
                     connection.close()
                     return 0  #end of if for requests
             elif (request=="send"): #post data to server
@@ -212,13 +236,15 @@ if __name__ == "__main__":
     reset.start()
     if args.ssl=="true":
         try:
-            ssl_server=HTTPServer((host, port), HandleRequests)
-            ssl_server.socket = ssl.wrap_socket (ssl_server.socket, keyfile="/tmp/key.pem",certfile="/tmp/cert.pem", server_side=True)  #wrap with ssl
-            print("[+]Starting POWERBEACON Server using SSL on port "+ str(port))
+            ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ssl_context.load_cert_chain(certfile="/tmp/cert.pem", keyfile="/tmp/key.pem")
+            ssl_server = HTTPServer((host, port), HandleRequests)
+            ssl_server.socket = ssl_context.wrap_socket(ssl_server.socket, server_side=True)  # wrap with SSL
+            print("[+]Starting POWERBEACON Server using SSL on port " + str(port))
             ssl_server.serve_forever()
         except KeyboardInterrupt:
             print("\n[*]Shutting down server")
-            stop_threads=True
+            stop_threads = True
     else:
         try:
             print("[+]Starting POWERBEACON Server on port "+ str(port))
