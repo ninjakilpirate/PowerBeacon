@@ -104,9 +104,9 @@ def getTasks(connection, UUID, complete):
     connection.commit()
     # Retrieve tasks from the database based on the completion status
     if int(complete) == 0:             #Completed tasks read most recent first
-        tasks = cur.execute(f"SELECT id, UUID, task, notes, time_complete FROM tasks WHERE (is_complete={complete}) ORDER BY id ASC")
+        tasks = cur.execute(f"SELECT id, UUID, task, notes, time_complete FROM tasks WHERE (is_complete={complete}) AND (UUID='{UUID}') ORDER BY id ASC")
     else:                              #Uncompleted tasks read oldest first
-        tasks = cur.execute(f"SELECT id, UUID, task, notes, time_complete FROM tasks WHERE (is_complete={complete}) ORDER BY id desc")
+        tasks = cur.execute(f"SELECT id, UUID, task, notes, time_complete FROM tasks WHERE (is_complete={complete}) AND (UUID='{UUID}') ORDER BY id desc")
     taskDetails = cur.fetchall()
     taskList = []
     for task in taskDetails:
