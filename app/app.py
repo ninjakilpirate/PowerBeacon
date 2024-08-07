@@ -30,7 +30,12 @@ def page_not_found(e):
 
 @app.route('/selectImplant',methods=['GET','POST'])
 def selectImplant():
-    myConnection.commit()
+    try:
+        myConnection = MySQLdb.connect( host=hostname, user=username, passwd=password, db=database )
+    except Exception as e:
+        print("error in connection")
+
+    #myConnection.commit()
     error=None
     if request.method == 'POST':
         try:
