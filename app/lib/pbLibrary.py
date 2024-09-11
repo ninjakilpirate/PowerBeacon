@@ -233,7 +233,7 @@ def addListeningPost(connection, name, address):
     connection.commit()
     if not address.startswith("http"):
         raise ValueError('The address must start with http or https')
-    name = name.replace(" ", "")
+#    name = name.replace(" ", "")
     verify_key = b64encode(str(time.time()).encode()).decode()
     cur = connection.cursor()
     callbackNameCheck = cur.execute(f"SELECT COUNT(*) FROM callbackAddresses WHERE name = '{name}'")
