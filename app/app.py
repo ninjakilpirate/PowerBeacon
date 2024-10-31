@@ -1,24 +1,56 @@
 #!/usr/bin/python3
+"""
+PowerBeacon Flask Application
+This module defines a Flask web application for managing PowerBeacon implants and listening posts.
+It provides various routes for interacting with the implants, tasks, and settings.
+Classes:
+    MySQLConnection: A context manager for managing MySQL database connections.
+Routes:
+    /: Redirects to the implants page.
+    /selectImplant: Allows selection of an implant.
+    /listeningPosts: Displays and manages listening posts.
+    /implants: Displays details and tasks for a selected implant.
+    /addTask: Adds a new task for an implant.
+    /deleteTask: Deletes a task for an implant.
+    /updateSettings: Updates settings for an implant.
+    /uninstallImplant: Uninstalls an implant.
+    /changeTime: Changes the beacon interval for an implant.
+    /taskSurvey: Adds a survey task for an implant.
+    /displaySurvey: Displays survey data for an implant.
+    /addImplant: Adds a new implant.
+    /deleteImplant: Deletes an implant.
+    /addListeningPost: Adds a new listening post.
+    /deleteListeningPost: Deletes a listening post.
+    /tools: Provides tools for encoding and decoding data.
+Main:
+    Parses command-line arguments for host and port, and runs the Flask application.
+"""
 
-from flask import Flask,render_template,request,redirect,url_for,flash,make_response
-from base64 import b64encode
-import MySQLdb
-import lib.pbLibrary as pb
 import argparse
+import MySQLdb
+from flask import Flask, render_template, request, redirect, url_for, flash, make_response
+import lib.pbLibrary as pb
 
+#Create MySQLConnection Context Manager
+class MySQLConnection:
+    def __init__(self, connection_settings):
+        self.connection_settings = connection_settings
+    def __enter__(self):
+        self.connection = MySQLdb.connect(**self.connection_settings)
+        return self.connection
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.connection.close()
 
+#Configure DB Connection
+connection_settings = {
+    'host': 'localhost',
+    'user': 'root',
+    'passwd': 't00r',
+    'db': 'powerbeacon'
+}
 
 app = Flask(__name__,template_folder='html')
 app.secret_key = "1234"
-
-
-#Configure database connection
-hostname = 'localhost'
-username = 'root'
-password = 't00r'
-database = 'powerbeacon'
-myConnection = MySQLdb.connect( host=hostname, user=username, passwd=password, db=database )
-
 
 #Routes
 @app.route('/',methods=['GET','POST'])
@@ -31,7 +63,7 @@ def page_not_found(e):
 
 @app.route('/selectImplant',methods=['GET','POST'])
 def selectImplant():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error=None
         if request.method == 'POST':
             try:
@@ -51,7 +83,7 @@ def selectImplant():
 
 @app.route('/listeningPosts',methods=['GET','POST'])
 def listeningPosts():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error=None
         if request.method == 'POST':
             listeningposts = pb.getListeningPosts(myConnection)
@@ -60,11 +92,9 @@ def listeningPosts():
             listeningPosts = pb.getListeningPosts(myConnection)
             return render_template('listeningposts.html',listeningPosts=listeningPosts,error=error)
 
-
-
 @app.route('/implants',methods=['GET','POST'])
 def implants():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error=None
         cookie = request.cookies.get("implant_id")
         #cookie = "NewTest"
@@ -101,7 +131,7 @@ def implants():
 
 @app.route('/addTask',methods=['GET','POST'])
 def addTask():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error = None
         if request.method == 'POST':
             UUID = request.form['UUID']
@@ -120,7 +150,7 @@ def addTask():
 
 @app.route('/deleteTask',methods=['GET','POST'])
 def deleteTask():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error=None
         if request.method=="POST":
             try:
@@ -137,7 +167,7 @@ def deleteTask():
 
 @app.route('/updateSettings',methods=['GET','POST'])
 def updateSettings():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error=None
         if request.method=="POST":
             notes = request.form['updateNotes']
@@ -155,7 +185,7 @@ def updateSettings():
 
 @app.route('/uninstallImplant',methods=['GET','POST'])
 def uninstallImplant():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error=None
         if request.method=="POST":
             UUID = request.form['UUID']
@@ -165,7 +195,7 @@ def uninstallImplant():
 
 @app.route('/changeTime',methods=['GET','POST'])
 def changeTime():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         if request.method=="POST":
             UUID=request.form['UUID']
             interval=int(request.form['interval'])
@@ -180,7 +210,7 @@ def changeTime():
 
 @app.route('/taskSurvey',methods=['GET','POST'])
 def taskSurvey():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         if request.method=="POST":
             UUID=request.form['UUID']
             notes=request.form['notes']
@@ -199,7 +229,7 @@ def taskSurvey():
 
 @app.route('/displaySurvey',methods=['GET','POST'])
 def getData():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error = None
         if request.method == 'POST':
             id=request.form['ID']
@@ -213,7 +243,7 @@ def getData():
 
 @app.route('/addImplant',methods=['GET','POST'])
 def addImplant():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error = None
         if request.method == 'POST':
             try:
@@ -236,7 +266,7 @@ def addImplant():
         
 @app.route('/deleteImplant',methods=['GET','POST'])
 def deleteImplant():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error = None
         if request.method == 'POST':
             UUID=request.form['deleteImplantID']
@@ -249,7 +279,7 @@ def deleteImplant():
 
 @app.route('/addListeningPost',methods=['GET','POST'])
 def addListeningPost():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error = None
         if request.method == 'POST':
             try:
@@ -266,7 +296,7 @@ def addListeningPost():
 
 @app.route('/deleteListeningPost',methods=['GET','POST'])
 def deleteListeningPost():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error = None
         if request.method == 'POST':
             ID=request.form['lpID']
@@ -277,7 +307,7 @@ def deleteListeningPost():
 
 @app.route('/tools',methods=['GET','POST'])
 def tools():
-    with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as myConnection:
+    with MySQLConnection(connection_settings) as myConnection:
         error = None
         if request.method == 'POST':
             if 'encodedData' in request.form:
@@ -312,4 +342,3 @@ if __name__ == "__main__":
     else:
         port = 5000
     app.run(host,port,debug=True)
-

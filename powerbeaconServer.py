@@ -1,25 +1,60 @@
 #!/usr/bin/python3
-import MySQLdb
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import ast
-import time
-import threading
-import sys
+"""
+PowerBeacon Server
+This script implements a simple HTTP server with GET and POST request handling, 
+integrated with a MySQL database for storing and retrieving data. It supports 
+optional SSL for secure communication.
+Classes:
+    MySQLConnection: Context manager for MySQL database connections.
+    HandleRequests: Handles HTTP GET and POST requests.
+Functions:
+    unset_should_get: Controls whether GET requests will be answered.
+Usage:
+    Run the script with the required arguments:
+    -p : Port number (required)
+    -b : Host address (optional)
+    --ssl : Enable SSL (optional, set to "true" to enable)
+Example:
+    python powerbeaconServer.py -p 8080 --ssl true
+Modules:
+    os, time, ssl, ast, base64, threading, argparse, datetime, http.server, MySQLdb
+Global Variables:
+    should_get: Controls whether the server is active.
+    stop_threads: Stops the thread resetting should_get.
+"""
 import os
-from datetime import datetime
-import base64
-import argparse
+import time
 import ssl
+import ast
+import base64
+import threading
+import argparse
+from datetime import datetime
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import MySQLdb
 
 
 should_get=False             #controls whether thge server is active
 stop_threads=False           #stop the thread resetting should_get
 
-#Configure database connection
-hostname = 'localhost'
-username = 'root'
-password = 't00r'
-database = 'powerbeacon'
+#Create MySQLConnection Context Manager
+class MySQLConnection:
+    def __init__(self, connection_settings):
+        self.connection_settings = connection_settings
+    def __enter__(self):
+        self.connection = MySQLdb.connect(**self.connection_settings)
+        return self.connection
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.connection.close()
+
+#Configure DB Connection
+connection_settings = {
+    'host': 'localhost',
+    'user': 'root',
+    'passwd': 't00r',
+    'db': 'powerbeacon'
+}
+
 
 
 
@@ -102,7 +137,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             return 0
 
         # Pull vars from dict
-        with MySQLdb.connect( host=hostname, user=username, passwd=password, db=database ) as connection:
+        with MySQLConnection(connection_settings) as connection:
             connection.commit()
             event=new_obj["event"]
             if event=="validate":
