@@ -22,6 +22,12 @@ Routes:
     /addListeningPost: Adds a new listening post.
     /deleteListeningPost: Deletes a listening post.
     /tools: Provides tools for encoding and decoding data.
+Environment Variables:
+    DB_HOST: The hostname of the MySQL database (default: 'localhost').
+    DB_USER: The username for the MySQL database (default: 'root').
+    DB_PASSWD: The password for the MySQL database (default: 't00r').
+    DB_NAME: The name of the MySQL database (default: 'powerbeacon').
+    SECRET_KEY: The secret key for the Flask application (default: '1234').
 Main:
     Parses command-line arguments for host and port, and runs the Flask application.
 """
@@ -29,6 +35,7 @@ Main:
 import argparse
 import MySQLdb
 from flask import Flask, render_template, request, redirect, url_for, flash, make_response
+import os
 import lib.pbLibrary as pb
 
 #Create MySQLConnection Context Manager
@@ -43,14 +50,14 @@ class MySQLConnection:
 
 #Configure DB Connection
 connection_settings = {
-    'host': 'localhost',
-    'user': 'root',
-    'passwd': 't00r',
-    'db': 'powerbeacon'
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'user': os.getenv('DB_USER', 'root'),
+    'passwd': os.getenv('DB_PASSWD', 't00r'),
+    'db': os.getenv('DB_NAME', 'powerbeacon')
 }
 
 app = Flask(__name__,template_folder='html')
-app.secret_key = "1234"
+app.secret_key = os.getenv('SECRET_KEY', '1234')
 
 #Routes
 @app.route('/',methods=['GET','POST'])
