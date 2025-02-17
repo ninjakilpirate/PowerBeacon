@@ -35,3 +35,8 @@ chmod +x create_cert.sh
 ./create_cert.sh
 
 #now start the server with --ssl true
+
+
+##The PowerBeacon Web interface has a 'copy' botton in several places.  This button will not work if the server is not running as SSL.  Cheap SOCAT fix - 
+socat openssl-listen:443,reuseaddr,fork,cert=cert.pem,key=key.pem,cafile=cert.pem,verify=0 TCP4:127.0.0.1:5000 
+
