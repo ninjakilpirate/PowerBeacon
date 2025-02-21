@@ -330,8 +330,8 @@ def tools():
                     encodedData = f"powershell -e {encodedData}"
                 return render_template('tools.html',encodedData=encodedData,decodedData=decodedData,error=error)
 
-        encodedData = "Enter value to Base64 encode"
-        decodedData = "Enter value to decode"
+        encodedData = ""
+        decodedData = ""
         return render_template('tools.html',encodedData=encodedData,decodedData=decodedData,error=error)
 
 if __name__ == "__main__":
