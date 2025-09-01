@@ -115,7 +115,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                     f.close()
                 self.wfile.write(data)
                 print(green+"[+]WEB_RESPONSE:::IP="+IP+":::File="+req+":::[200 OK]"+default)  #write to console that it was read
-                writeLog("Good", f"Served file {req} to IP: {IP}", "NULL","NULL")
+                writeLog("Success", f"Served file {req} to IP: {IP}", "NULL","NULL")
         except:
             with open(path+"/web_serve/404.html", 'rb') as f:  #otherwise return a 404
                 data = f.read()
