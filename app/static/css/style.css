@@ -1,0 +1,26 @@
+.nav-pills .pill-1 .nav-link:not(.active) {
+    background-color: #240b30 ;
+    color: white
+}
+.nav-pills .pill-1 .nav-link.active {
+    background-color: #212529;
+    color: white;
+}
+.footer {
+    position: fixed;
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    color: maroon;
+    text-align: center;
+    background-color: #573866;
+}
+.dark-purple {
+    background-color:#240b30
+}
+.x7 {
+    box-shadow: inset 1px 1px 150px #000;
+}
+.x3 {
+    box-shadow: 0 0 20px hsla(281,63%,50%,1);
+}

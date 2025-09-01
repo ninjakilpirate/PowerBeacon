@@ -104,11 +104,14 @@ def implants():
     with MySQLConnection(connection_settings) as myConnection:
         error=None
         cookie = request.cookies.get("implant_id")
+        print(f"Cookie implant: {cookie}")
+
         #cookie = "NewTest"
         
         try:
             if cookie:  #check if a cookie exists, otherwise send to implant selection screen
                 UUID = cookie
+                print(f"Using implant {UUID} from cookie")
 
                 
                 callbacks=pb.getCallbacks(myConnection,UUID,"10")
@@ -254,13 +257,13 @@ def addImplant():
         error = None
         if request.method == 'POST':
             try:
-                UUID = request.form['UUID']
-                key = request.form['key']
+                name = request.form['implant_name']
+                #key = request.form['key']
                 c2 = request.form['c2']
                 filter = request.form['filter']
                 notes = request.form['notes']
                 consumer = request.form['consumer']
-                pb.addImplant(myConnection,UUID,key,notes,c2,filter,consumer)
+                pb.addImplant(myConnection,name,notes,c2,filter,consumer)
                 flash("Implant Added")
                 return redirect(url_for('selectImplant'))
             except Exception as e:

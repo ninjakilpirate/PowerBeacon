@@ -186,7 +186,7 @@ $(document).ready(function() {
   <div class="text-center">
     <select class="form-control text-center select-center border-secondary" id="implantID" name="UUID">
       {% for implant in implantList %}
-      <option class="select-center" value="{{ implant[0] }}">{{ implant[0] }}</option>
+      <option class="select-center" value="{{ implant[0] }}">{{ implant[6] }}</option><!-- Implant friendly name is at implant[6]  the UUID used for control is at [0] -->
       {% endfor %}
     </select>
     </div>
@@ -224,10 +224,10 @@ $(document).ready(function() {
       <div class="modal-body">
 <form method="post" action="/addImplant">
   <div class="form-group mt-3">
-    <label for="UUID">Implant Name</label>
-  <input class="form-control" type="text"  name="UUID" required></input>
- <br><label for="UUID">Implant Key</label>
-<input class="form-control" type="text"  name="key" required></input>
+    <label for="implant_name">Implant Name</label>
+  <input class="form-control" type="text"  name="implant_name" required></input>
+<!--<br><label for="UUID">Implant Key</label>
+<input class="form-control" type="text"  name="key" required></input> !--key is auto generated-->
 <div class="form-group">
 	<br><label for="notes">Notes</label>
         <input type="text" class="form-control" id="notes" required name="notes"></input>

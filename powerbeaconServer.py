@@ -33,7 +33,6 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import MySQLdb
 
-
 should_get=False             #controls whether thge server is active
 stop_threads=False           #stop the thread resetting should_get
 
@@ -49,14 +48,29 @@ class MySQLConnection:
 
 #Configure DB Connection
 connection_settings = {
-    'host': 'localhost',
-    'user': 'root',
-    'passwd': 't00r',
-    'db': 'powerbeacon'
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'user': os.getenv('DB_USER', 'root'),
+    'passwd': os.getenv('DB_PASSWD', 't00r'),
+    'db': os.getenv('DB_NAME', 'powerbeacon')
 }
 
-
-
+def writeLog(log_type, log_text, implant_name, UUID):
+    """
+    Writes a log entry to the database.
+    Args:
+        log_type (str): Type/category of the log.
+        log(str): Log message/content.
+        name (str): Name of the implant.
+        UUID (str): UUID of the implant.
+    """
+    with MySQLConnection(connection_settings) as connection:
+        cursor = connection.cursor()
+        query = (
+            "INSERT INTO logs (log_type, log, name, UUID) "
+            "VALUES (%s, %s, %s, %s)"
+        )
+        cursor.execute(query, (log_type, log_text, implant_name, UUID))
+        connection.commit()
 
 
 #####controls whether GET will be answered.  Is OFF except for 5 seconds after auth
@@ -182,12 +196,17 @@ class HandleRequests(BaseHTTPRequestHandler):
             if (len(results)<1):  #if it doesn't exist write implant not found and return
                 date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                 print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::IMPLANT NOT FOUND"+default)
+                writeLog("Bad_UUID", f"Request from unknown UUID: {UUID} at IP: {IP}", "name",UUID)
                 #connection.close()
                 return 0
             #Check if key matches    
             query = f"select * from implants where UUID='{UUID}' and implantkey='{key}'"
             cursor.execute(query)
             results=cursor.fetchall()
+            query =f"select implant_name from implants where UUID='{UUID}'"
+            cursor.execute(query)
+            name_results=cursor.fetchall()
+            implant_name=name_results[0][0]
             if (len(results) > 0):
                 if (request=="req"):#only if requests
     #                cursor.execute("update checkins set last_checkin=now() where UUID='" + UUID +"'")
@@ -214,7 +233,8 @@ class HandleRequests(BaseHTTPRequestHandler):
                         return 0
                     else: #if no tasks
                         date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-                        print(f"{date_time}[-]Incomming Request from {UUID} at IP: {IP} :::No Tasking Available")
+                        print(f"{date_time}[-]Incomming Request from {implant_name} at IP: {IP} :::No Tasking Available")
+                        writeLog("Check_In", f"Check-in from {implant_name} at IP: {IP} - No tasks available", "name",UUID)
                         #connection.close()
                         return 0  #end of if for requests
                 elif (request=="send"): #post data to server

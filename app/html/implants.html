@@ -7,43 +7,8 @@
 
 
 <html lang="en">
+<link rel="stylesheet" href="/static/css/style.css">
 
-<style>
-
-.nav-pills .pill-1 .nav-link:not(.active) {
-    background-color: #240b30 ;
-    color: white
-}
-
-
-/* active (faded) */
-.nav-pills .pill-1 .nav-link.active {
-    background-color: #212529;
-    color: white;
-}
-
-.footer {
-position: fixed;
-width: 100%;
-left: 0;
-bottom: 0;
-color: maroon;
-text-align: center;
-background-color: #573866;
-}
-
-.dark-purple {
-background-color:#240b30
-}
-
-.x7 {
-    box-shadow: inset 1px 1px 150px #000;
-}
-
-.x3 {
-    box-shadow: 0 0 20px hsla(281,63%,50%,1);
-}
-</style>
 
 <script>
 function copyTextBox(textBox) {
@@ -197,16 +162,16 @@ function unlockUninstall() {
 {% endwith %}  
 <!-- End Flashes and Errors -->
 
-<!-- Auto Close Alerts Script 
+
 <script>
 $(document).ready(function() {
     setTimeout(function() {
         $(".alert").alert('close');
-    }, 3000);
+    }, 5000);
 });
 </script>
 
-<!-- I'm not sure I like the auto close -->
+
 
 
 
@@ -220,6 +185,7 @@ $(document).ready(function() {
         <h1 class="display-4">{{implant.name}}</h1>
 	<p class="h6 m-0"> Notes: {{implant.notes}}</p>
   <br><strong>Callback URL:</strong> {{implant.c2}}
+  <br><strong>Implant UUID:</strong> {{implant.UUID}}
   <br><strong>WMI Filter:</strong> {{implant.filter}}
   <br><strong>WMI Consumer:</strong> {{implant.consumer}}
 <br><br></br></br></div>
@@ -481,7 +447,7 @@ $(document).ready(function() {
         <div class="form-group">
         <textarea class="form-control" name="task" placeholder="Enter task to run" rows="10"required></textarea></br>
         <input type="text" class="form-control" name="notes" placeholder="Enter task notes" required></input>
-	<input type="hidden" class="form-control" name="UUID" required value="{{implant.name}}"></input></br>
+	<input type="hidden" class="form-control" name="UUID" required value="{{implant.UUID}}"></input></br>
         </div>
       </div>
       <div class="modal-footer">
@@ -515,7 +481,7 @@ $(document).ready(function() {
         <option value="1">1 minute</option>
         <option value="0">15 Seconds</option>
     </select>
-    <input type="hidden" class="form-control" name="UUID" required value="{{implant.name}}"></input></br>
+    <input type="hidden" class="form-control" name="UUID" required value="{{implant.UUID}}"></input></br>
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Submit Task</button>
@@ -560,7 +526,7 @@ $(document).ready(function() {
     </br> 
     
     <input type="text" class="form-control" name="notes" required placeholder="Enter Survey Note"></input></br>
-    <input type="hidden" class="form-control" name="UUID" required value="{{implant.name}}"></input></br>
+    <input type="hidden" class="form-control" name="UUID" required value="{{implant.UUID}}"></input></br>
     </div>
     <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Submit Task</button>
@@ -587,7 +553,7 @@ $(document).ready(function() {
       </div>
       <div class="modal-body">
 <form method="post" action="/updateSettings">
-<input class="form-control" type="hidden" value="{{implant.name}}" name="UUID" readonly></input>
+<input class="form-control" type="hidden" value="{{implant.UUID}}" name="UUID" readonly></input>
 <input class="form-control" type="hidden" value="{{implant.key}}" name="key" readonly></input>
 <div class="form-group">
 	<label for="updatenotes">Update Notes</label>
@@ -652,7 +618,7 @@ $(document).ready(function() {
     <form id="uninstallImplant" method="post" action="/uninstallImplant" class="form-floating">
         <br><h5>Uninstall Implant </h5>
           <div class="form-check">
-          <input type="hidden" value="{{implant.name}}" name="UUID"></input>
+          <input type="hidden" value="{{implant.UUID}}" name="UUID"></input>
           <input class="form-check-input" type="checkbox" value='' id="checkUninstall" onclick="unlockUninstall()"></input>
           <label class="form-check-label" for="checkUninstall">Check box to unlock uninstall button.</label>
           </div>
@@ -682,7 +648,7 @@ $(document).ready(function() {
 
       inputField.addEventListener('input', function () {
         const inputValue = inputField.value;
-        if (inputValue === "{{ implant.name }}") {
+        if (inputValue === "{{ implant.UUID }}") {
           statusText.textContent = 'Are you sure? This cannot be undone.';
           submitButton.removeAttribute('disabled'); // Enable the submit button
           inputField.classList.remove('is-invalid'); // Remove the 'is-invalid' class
