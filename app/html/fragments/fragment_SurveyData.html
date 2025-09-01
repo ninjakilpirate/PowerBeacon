@@ -1,0 +1,24 @@
+<table class="table table-sm table-dark table-hover rounded">
+  <thead>
+    <tr>
+        <th scope="col" class="text-center"></th>
+        <th scope="col" class="text-center">Time Recieved</th>
+        <th scope="col" class="text-center">Survey Notes</th>
+
+    <tr>
+  </thead>
+  <tbody>
+
+    {% for survey in surveyData %}
+        <tr data-toggle="modal" data-target="#surveyModal{{survey.id}}">
+            <td class="w-10 p-2 class="text-center">
+            <form method="post" target="_blank" action="/displaySurvey">
+            <input type="hidden" name="ID" value={{survey.id}} required>
+<div class="text-center"><button type="submit" class="btn btn-secondary text-center" value="{{survey.id}}">View</button></div>
+            </form>
+            </td>
+            <td class="text-nowrap text-center align-middle">{{survey.time_delivered}}</td>
+            <td class="text-nowrap text-center align-middle">{{survey.details}}</td>
+       </tr>
+    {% endfor %}
+</table>

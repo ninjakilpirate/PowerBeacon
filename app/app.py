@@ -354,7 +354,7 @@ def fragment_logs():
     with MySQLConnection(connection_settings) as myConnection:
         error = None
         logs = pb.getLogs(myConnection)
-        return render_template('fragment_logs.html',logs=logs,error=error)     
+        return render_template('fragments/fragment_logs.html',logs=logs,error=error)     
 
 
 @app.route('/fragment_CheckIns',methods=['GET','POST'])
@@ -362,32 +362,86 @@ def fragment_CheckIns():
     with MySQLConnection(connection_settings) as myConnection:
         error=None
         cookie = request.cookies.get("implant_id")
-        print(f"Cookie implant: {cookie}")
         try:
             if cookie:  #check if a cookie exists, otherwise send to implant selection screen
                 UUID = cookie
                 callbacks=pb.getCallbacks(myConnection,UUID,"10")   
-                print("ok")
-                return render_template('fragment_CheckIns.html',callbacks=callbacks,error=error)
+                return render_template('fragments/fragment_CheckIns.html',callbacks=callbacks,error=error)
         except Exception as e:
             error = f"Error retrieving check-ins: {e}"
-        return render_template('fragment_CheckIns.html',callbacks=[],error=error)
+        return render_template('fragments/fragment_CheckIns.html',callbacks=[],error=error)
 
 @app.route('/fragment_CheckInsModal',methods=['GET','POST'])
 def fragment_checkInsModal():
     with MySQLConnection(connection_settings) as myConnection:
         error=None
         cookie = request.cookies.get("implant_id")
-        print(f"Cookie implant: {cookie}")
+        
         try:
             if cookie:  #check if a cookie exists, otherwise send to implant selection screen
                 UUID = cookie
                 callbacks=pb.getCallbacks(myConnection,UUID,"10")   
-                print("ok")
-                return render_template('fragment_checkInsModal.html',callbacks=callbacks,error=error)
+                return render_template('fragments/fragment_checkInsModal.html',callbacks=callbacks,error=error)
         except Exception as e:
             error = f"Error retrieving check-ins: {e}"
-        return render_template('fragment_checkInsModal.html',callbacks=[],error=error)
+        return render_template('fragments/fragment_checkInsModal.html',callbacks=[],error=error)
+
+@app.route('/fragment_PendingTasks',methods=['GET','POST'])
+def fragment_PendingTasks():
+    with MySQLConnection(connection_settings) as myConnection:
+        error=None
+        cookie = request.cookies.get("implant_id")
+        try:
+            if cookie:  #check if a cookie exists, otherwise send to implant selection screen
+                UUID = cookie
+                pendingTasks=pb.getTasks(myConnection,UUID,"0")   
+                return render_template('fragments/fragment_PendingTasks.html',pendingTasks=pendingTasks,error=error)
+        except Exception as e:
+            error = f"Error retrieving pending tasks: {e}"
+        return render_template('fragments/fragment_PendingTasks.html',pendingTasks=[],error=error)
+
+@app.route('/fragment_CompletedTasks',methods=['GET','POST'])
+def fragment_CompletedTasks():
+    with MySQLConnection(connection_settings) as myConnection:
+        error=None
+        cookie = request.cookies.get("implant_id")
+        try:
+            if cookie:  #check if a cookie exists, otherwise send to implant selection screen
+                UUID = cookie
+                completedTasks=pb.getTasks(myConnection,UUID,"1")   
+                return render_template('fragments/fragment_CompletedTasks.html',completedTasks=completedTasks,error=error)
+        except Exception as e:
+            error = f"Error retrieving completed tasks: {e}"
+        return render_template('fragments/fragment_CompletedTasks.html',completedTasks=[],error=error)
+
+@app.route('/fragment_CompletedTasksModalContainer',methods=['GET','POST'])
+def fragment_CompletedTasksModalContainer():
+    with MySQLConnection(connection_settings) as myConnection:
+        error=None
+        cookie = request.cookies.get("implant_id")
+        try:
+            if cookie:  #check if a cookie exists, otherwise send to implant selection screen
+                UUID = cookie
+                completedTasks=pb.getTasks(myConnection,UUID,"1")   
+                return render_template('fragments/fragment_CompletedTasksModalContainer.html',completedTasks=completedTasks,error=error)
+        except Exception as e:
+            error = f"Error retrieving completed tasks: {e}"
+        return render_template('fragments/fragment_CompletedTasksModalContainer.html',completedTasks=[],error=error)
+
+@app.route('/fragment_SurveyData',methods=['GET','POST'])
+def fragment_SurveyData():
+    with MySQLConnection(connection_settings) as myConnection:
+        error=None
+        cookie = request.cookies.get("implant_id")
+        try:
+            if cookie:  #check if a cookie exists, otherwise send to implant selection screen
+                UUID = cookie
+                surveyData=pb.getSurveyList(myConnection,UUID)   
+                return render_template('fragments/fragment_SurveyData.html',surveyData=surveyData,error=error)
+        except Exception as e:
+            error = f"Error retrieving survey data: {e}"
+
+        return render_template('fragments/fragment_SurveyData.html',surveyData=[],error=error)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

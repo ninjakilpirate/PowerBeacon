@@ -5,7 +5,7 @@
 
 <html lang="en">
 <link rel="stylesheet" href="/static/css/style.css">
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script src="/static/js//socket.io.min.js"></script>
 <script>
 var BROKER_HOST = "{{ broker_host }}"
 var socket = io(BROKER_HOST);
@@ -17,22 +17,80 @@ function getCookie(name) {
 }
 
 socket.on('implant_checkin', function(msg) {
-    console.log('Received implant_checkin:', msg);
-    var cookieUUID = getCookie('implant_id');
-    console.log('Cookie UUID:', cookieUUID);
-    if (msg.uuid === cookieUUID) {
-        updateCheckIns();
+    console.log('Received implant_checkin:', msg);  //log to console for any debugging
+    var cookieUUID = getCookie('implant_id');       //get the cookie
+    
+    if (msg.uuid === cookieUUID) {                  //if it's a match, then update the page
+        updateCheckIns(); 
         updateCheckInsModal();
+        updatePendingTasks();
+        updateCompletedTasks();
+        updateCompletedTasksModalContainer();
+        updateSurveyData();
         console.log('Check-ins updated for UUID:', cookieUUID);
+        // Show Bootstrap alert if type is taskDelivered
+        if (msg.type === 'taskDelivered') {        //If tasks have been delivered, show an alert and update the task lists
+            showBootstrapAlert(msg.message);
+            
+        }
+        if (msg.type == 'dataReceived') {        //if dataReceived then update the survey data panels
+            
+            showBootstrapAlert(msg.message);
+        }
+        if (msg.type == 'checkin') {        //if a checkin, then update the checkin panel
+            showBootstrapAlert(msg.message);
+        }
     }
 });
 
+function showBootstrapAlert(message) {
+  // Only use the existing messages container, called messages
+  var messagesContainer = document.getElementById('messages');
+  if (messagesContainer) {
+    var alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-info alert-dismissible fade show';
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = '<strong>' + message + '</strong>' +
+      '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+      '<span aria-hidden="true">&times;</span></button>';
+    messagesContainer.insertBefore(alertDiv, messagesContainer.firstChild);
+    setTimeout(function() {
+      $(alertDiv).alert('close');
+    }, 59000);
+  }
+}
+
+//what follows are a series of update functions for different parts of the page
 function updateCheckIns() {
     fetch('/fragment_CheckIns')
         .then(response => response.text())
         .then(html => {
             document.getElementById('checkins').innerHTML = html;
             
+});
+}
+function updatePendingTasks() {
+    fetch('/fragment_PendingTasks')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('pills-pendingTasks').innerHTML = html;
+
+        });
+}
+
+function updateCompletedTasks() {
+    fetch('/fragment_CompletedTasks')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('pills-completedTasks').innerHTML = html;
+        });
+}
+
+function updateCompletedTasksModalContainer() {
+    fetch('/fragment_CompletedTasksModalContainer')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('completedTasksModalContainer').innerHTML = html;
         });
 }
 
@@ -44,9 +102,22 @@ function updateCheckInsModal() {
             
         });
 }
-//setInterval(updateCheckInsModal, 1000); // Update every 1 second
-//Optionally, call once on page load
+
+function updateSurveyData() {
+    fetch('/fragment_SurveyData')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('surveyDataContainer').innerHTML = html;
+        });
+}
+
 document.addEventListener('DOMContentLoaded', updateCheckIns);
+document.addEventListener('DOMContentLoaded', updateCheckInsModal);
+document.addEventListener('DOMContentLoaded', updateSurveyData);
+document.addEventListener('DOMContentLoaded', updatePendingTasks);
+document.addEventListener('DOMContentLoaded', updateCompletedTasks);
+document.addEventListener('DOMContentLoaded', updateCompletedTasksModalContainer);
+
 </script>
 
 <script>
@@ -174,10 +245,10 @@ function unlockUninstall() {
 <!--Start of Container-->
 <p>
 <div class="container">
-
+<div id="messages"></div>
 <!-- Flashes and Errors -->
 {% if error %}
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
+<div id=errors class="alert alert-danger alert-dismissible fade show" role="alert">
   <strong>{{error}}</strong> 
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">&times;</span>
@@ -186,19 +257,15 @@ function unlockUninstall() {
 {% endif %}
 
 
-
 {% with messages = get_flashed_messages() %}  
          {% if messages %}  
                {% for message in messages %}  
-<div class="alert alert-info alert-dismissible fade show" role="alert">
+<div class="alert alert-info alert-dismissible fade show" role="alert" id=flashes>
   <strong>{{ message }}</strong> 
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">&times;</span>
   </button>
 </div>
-
-
-
                {% endfor %}  
          {% endif %}  
 {% endwith %}  
@@ -209,14 +276,9 @@ function unlockUninstall() {
 $(document).ready(function() {
     setTimeout(function() {
         $(".alert").alert('close');
-    }, 5000);
+    }, 59000);
 });
 </script>
-
-
-
-
-
 
 <div class="container-fluid text-white rounded p-4 dark-purple" >
 
@@ -277,7 +339,7 @@ $(document).ready(function() {
 </ul>
 
 <div class="tab-content" id="nav-tabContent">
-  <div class="tab-pane fade show active" id="pills-pendingTasks" role="tabpanel" aria-labelledby="pill-pending-tab">
+<div class="tab-pane fade show active" id="pills-pendingTasks" role="tabpanel" aria-labelledby="pill-pending-tab">
 {% if pendingTasks %}
 
 <table class="table table-dark table-hover rounded">
@@ -326,7 +388,7 @@ $(document).ready(function() {
 </div>
   <div class="tab-pane fade" id="pills-surveyData" role="tabpanel" aria-labelledby="pill-data-tab">
 
-
+<div id="surveyDataContainer">
 <table class="table table-sm table-dark table-hover rounded">
   <thead>
     <tr>
@@ -351,6 +413,7 @@ $(document).ready(function() {
        </tr>
     {% endfor %}
 </table>
+</div>
 
 
 
@@ -410,6 +473,7 @@ $(document).ready(function() {
 
 
 <!-- CompletedTasksModal -->
+<div id="completedTasksModalContainer">
 {% for task in completedTasks %}
 
 
@@ -434,6 +498,7 @@ $(document).ready(function() {
   </div>
 </div>
 {% endfor %}
+</div>
 <!-- End Completed Tasks Modal -->
 
 <!-- Check Ins Modal -->

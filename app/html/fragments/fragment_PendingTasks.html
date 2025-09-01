@@ -1,0 +1,22 @@
+{% if pendingTasks %}
+
+<table class="table table-dark table-hover rounded">
+  <thead>
+    <tr>
+        <th scope="col" class="text-center">Task ID</th>
+        <th scope="col" class="text-center">Task Name</th>
+    <tr>
+  </thead>
+  <tbody>
+
+    {% for task in pendingTasks %}
+
+        <tr data-toggle="modal" data-target="#Modal{{task.id}}" onClick = "disableTaskDelete('{{task.id}}')">
+            <td class="text-center">{{task.id}}</td>
+            <td class="text-center">{{task.notes}}</td>
+       </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p class="h2 text-white">No Pending Tasks</p></u>
+{% endif %}

@@ -180,7 +180,7 @@ def addImplant(connection, name, notes, c2, filter, consumer):
 def addTask(connection,UUID,task,notes):
     connection.commit()
     cur = connection.cursor()
-    cur.execute(f"INSERT INTO tasks (UUID,task,notes) VALUES ('{UUID}','{task}','{notes}')")
+    cur.execute("INSERT INTO tasks (UUID,task,notes) VALUES (%s, %s, %s)", (UUID, task, notes))
     connection.commit()
     cur.close()
     return
