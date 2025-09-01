@@ -24,3 +24,35 @@
 .x3 {
     box-shadow: 0 0 20px hsla(281,63%,50%,1);
 }
+
+.console-log {
+    background: #000;
+    color: #ccc;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    padding: 10px;
+}
+
+.log-entry {
+    white-space: pre;
+    margin: 0;
+    padding: 0;
+}
+
+.log-entry.error {
+    color: #e74c3c; /* red */
+}
+
+.log-entry.success {
+    color: #27ae60; /* green */
+}
+
+.log-entry.info {
+    color: #ccc; /* default gray */
+}
+.log-entry.warning {
+    color: #e4f312; /* yellow */
+}
+.log-entry.data {
+    color: #b277d1; /* purple */
+}

@@ -324,6 +324,13 @@ def base64Decode(data):
         data = "Error decoding data"
     return data
 
+def getLogs(connection):
+    cur = connection.cursor()
+    cur.execute("SELECT * FROM logs ORDER BY id DESC LIMIT 150")
+    logs = cur.fetchall()
+    cur.close()
+    return logs
+
 def generateInstall(connection,UUID,interval):
     interval=int(interval)
     cur=connection.cursor()

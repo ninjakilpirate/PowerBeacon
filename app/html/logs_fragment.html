@@ -1,0 +1,14 @@
+<!-- filepath: x:\PowerBeacon\app\html\logs_fragment.html -->
+{% for log in logs %}
+    {% set log_class = 'log-entry' %}
+    {% if log[1] == 'Warning' %}
+        {% set log_class = 'log-entry warning' %}
+    {% elif log[1] == 'Error' %}
+        {% set log_class = 'log-entry error' %}
+    {% elif log[1] == 'Success' %}
+        {% set log_class = 'log-entry success' %}
+    {% elif log[1] == 'Data' %}
+        {% set log_class = 'log-entry data' %}
+    {% endif %}
+    <div class="{{ log_class }}">{{ log[4] }} -- {{ log[2] }}</div>
+{% endfor %}

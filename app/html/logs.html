@@ -3,64 +3,12 @@
 
 
 
-  <head>
-
+<head>
+<link rel="stylesheet" href="/static/css/style.css">
 
 <html lang="en">
 
-<style>
-.select-center {
-    text-align: center;
-    text-align-last: center;
-    -moz-text-align-last: center;
-}
 
-.nav-pills .pill-1 .nav-link:not(.active) {
-    background-color: #240b30 ;
-    color: white
-}
-
-
-/* active (faded) */
-.nav-pills .pill-1 .nav-link.active {
-    background-color: #212529;
-    color: white;
-}
-
-.footer {
-position: fixed;
-width: 100%;
-left: 0;
-bottom: 0;
-color: maroon;
-text-align: center;
-background-color: #573866;
-}
-
-.dark-purple {
-background-color:#240b30
-}
-
-.error-background {
-background-color: #010A1B
-}
-
-.x7 {
-    box-shadow: inset 1px 1px 150px #000;
-}
-
-.x3 {
-    box-shadow: 0 0 15px hsla(281,63%,50%,1);
-}
-
-.full-width-button {
-    width: 100%;
-}
-
-.long-button {
-    width: 95%;
-}
-</style>
 
 <script>
 function copyTextBox(textBox) {
@@ -78,10 +26,30 @@ function copyTextBox(textBox) {
   alert("Text copied to clipboard");
 }
 
+function filterLogs() {
+    var filter = document.getElementById('logFilter').value.toLowerCase().trim();
+    var logs = document.querySelectorAll('#logContainer .log-entry');
+    logs.forEach(function(log) {
+        var text = log.textContent.toLowerCase();
+        
+        log.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+
+function updateLogs() {
+    fetch('/logs_fragment')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('logContainer').innerHTML = html;
+            filterLogs(); // Re-apply filter after update
+        });
+}
+
+setInterval(updateLogs, 5000); // Update every 5 seconds
+
+// Optionally, call once on page load
+document.addEventListener('DOMContentLoaded', updateLogs);
 </script>  
-
-
-
 
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -184,34 +152,22 @@ $(document).ready(function() {
 <!-- I'm not sure I like the auto close -->
 
 
+<input type="text" id="logFilter" placeholder="Filter logs..." onkeyup="filterLogs()">
 
 
-<div class="container-fluid text-white rounded p-4 dark-purple" >
-<h4>There is currently only one utility, base64 encoding and decoding.</h4>
-<br><br>
-
-
-<form action="/tools" method="post">
-<div class = "form-group" >
-  <label for="DecodedData">Plantext:</label>
-  <br><input type="checkbox" id="powershellify" name="powershellify" value="powershellify"> Powershellify<br>
-  <textarea class="form-control" id="DecodedData" rows="10" name="decodedData" placeholder="{{decodedData}}">{{decodedData}}</textarea>
-  <a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" style="filter:invert(100%)" onclick="copyTextBox('DecodedData')"></img></a>
-
- <button type="submit" class="btn btn-primary long-button"  >Encode</button>
-</form></br></br>
-<form action="/tools" method="post">
-  
-  <br><label for="EncodedData">Base64 Encoded:</label>
-  <textarea class="form-control" id="EncodedData" rows="10" name="encodedData" placeholder="{{encodedData}}">{{encodedData}}</textarea>
-  <a href="#" class="tooltip-test" title="Copy Text"><img src="/static/images/copy.svg" class="rounded float-right" width="40" height="40" style="filter:invert(100%)" onclick="copyTextBox('EncodedData')"></img></a>
-  <button type="submit" class="btn btn-primary long-button" >Decode</button>
-</form>
+<div class="console-log" id="logContainer">
+    {% for log in logs %}
+        {% set log_class = 'log-entry' %}
+        {% if log[1] == 'Warning' %}
+            {% set log_class = 'log-entry warning' %}
+        {% elif log[1] == 'Error' %}
+            {% set log_class = 'log-entry error' %}
+        {% elif log[1] == 'Success' %}
+            {% set log_class = 'log-entry success' %}
+        {% endif %}
+        <div class="{{ log_class }}">{{ log[2] }}</div>
+    {% endfor %}
 </div>
-</form>
-<br><br><br>
-
-
 
 
 

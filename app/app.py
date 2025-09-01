@@ -336,6 +336,24 @@ def tools():
         encodedData = ""
         decodedData = ""
         return render_template('tools.html',encodedData=encodedData,decodedData=decodedData,error=error)
+    
+@app.route('/logs',methods=['GET','POST'])
+def logs():
+    with MySQLConnection(connection_settings) as myConnection:
+        error = None
+        if request.method == 'POST':
+            logs = pb.getLogs(myConnection)
+            return render_template('logs.html',logs=logs,error=error)
+        else:
+            logs = pb.getLogs(myConnection)
+            return render_template('logs.html',logs=logs,error=error)
+
+@app.route('/logs_fragment')
+def logs_fragment():
+    with MySQLConnection(connection_settings) as myConnection:
+        error = None
+        logs = pb.getLogs(myConnection)
+        return render_template('logs_fragment.html',logs=logs,error=error)        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
