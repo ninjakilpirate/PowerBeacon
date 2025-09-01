@@ -1,14 +1,53 @@
 <!doctype html>
 
-
-
-
-  <head>
+<head>
 
 
 <html lang="en">
 <link rel="stylesheet" href="/static/css/style.css">
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+var BROKER_HOST = "{{ broker_host }}"
+var socket = io(BROKER_HOST);
 
+function getCookie(name) {
+    var value = "; " + document.cookie;
+    var parts = value.split("; " + name + "=");
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+socket.on('implant_checkin', function(msg) {
+    console.log('Received implant_checkin:', msg);
+    var cookieUUID = getCookie('implant_id');
+    console.log('Cookie UUID:', cookieUUID);
+    if (msg.uuid === cookieUUID) {
+        updateCheckIns();
+        updateCheckInsModal();
+        console.log('Check-ins updated for UUID:', cookieUUID);
+    }
+});
+
+function updateCheckIns() {
+    fetch('/fragment_CheckIns')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('checkins').innerHTML = html;
+            
+        });
+}
+
+function updateCheckInsModal() {
+    fetch('/fragment_CheckInsModal')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('modalCheckIns').innerHTML = html;
+            
+        });
+}
+//setInterval(updateCheckInsModal, 1000); // Update every 1 second
+//Optionally, call once on page load
+document.addEventListener('DOMContentLoaded', updateCheckIns);
+</script>
 
 <script>
 function copyTextBox(textBox) {
@@ -195,7 +234,7 @@ $(document).ready(function() {
 <div class="col-md-auto"></div>        
 <div class="col-sm">
         <div class="media float-right">
-		<div class="media-body">
+		<div class="media-body" id="checkins">
          	<p class="h5 float-right"><u>Callback History</p></br></u>
                 {% for callback in callbacks[:5] %}
                 <p class="h6 float-right">{{ callback.time }}</p><br>

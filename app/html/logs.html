@@ -9,7 +9,7 @@
 <html lang="en">
 
 
-
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <script>
 function copyTextBox(textBox) {
   // Get the text field
@@ -35,9 +35,14 @@ function filterLogs() {
         log.style.display = text.includes(filter) ? '' : 'none';
     });
 }
+var BROKER_HOST = "{{ broker_host }}";
+var socket = io(BROKER_HOST); // Use the relay app's address
+socket.on('log_update', function(msg) {
+    updateLogs(); // Only update when notified
+});
 
 function updateLogs() {
-    fetch('/logs_fragment')
+    fetch('/fragment_logs')
         .then(response => response.text())
         .then(html => {
             document.getElementById('logContainer').innerHTML = html;
@@ -45,8 +50,7 @@ function updateLogs() {
         });
 }
 
-setInterval(updateLogs, 5000); // Update every 5 seconds
-
+//setInterval(updateLogs, 5000); // Update every 5 seconds
 // Optionally, call once on page load
 document.addEventListener('DOMContentLoaded', updateLogs);
 </script>  

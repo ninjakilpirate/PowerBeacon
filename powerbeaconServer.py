@@ -32,6 +32,7 @@ import argparse
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import MySQLdb
+import redis
 
 should_get=False             #controls whether thge server is active
 stop_threads=False           #stop the thread resetting should_get
@@ -45,6 +46,8 @@ class MySQLConnection:
         return self.connection
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.connection.close()
+
+redis_client = redis.Redis(host='127.0.0.1', port=6379, db=0)
 
 #Configure DB Connection
 connection_settings = {
@@ -71,6 +74,11 @@ def writeLog(log_type, log_text, implant_name, UUID):
         )
         cursor.execute(query, (log_type, log_text, implant_name, UUID))
         connection.commit()
+    redis_client.publish('log_channel', 'new_log')
+
+
+
+
 
 
 #####controls whether GET will be answered.  Is OFF except for 5 seconds after auth
@@ -244,6 +252,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                         date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
                         print(f"{date_time}[-]Incomming Request from {implant_name} at IP: {IP} :::No Tasking Available")
                         writeLog("Log", f"Check-in from {implant_name} at IP: {IP} - No tasks available", implant_name,UUID)
+                        redis_client.publish('checkin_channel', UUID)
                         #connection.close()
                         return 0  #end of if for requests
                 elif (request=="send"): #post data to server

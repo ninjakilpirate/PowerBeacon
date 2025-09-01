@@ -55,6 +55,7 @@ connection_settings = {
     'passwd': os.getenv('DB_PASSWD', 't00r'),
     'db': os.getenv('DB_NAME', 'powerbeacon')
 }
+broker_host = os.getenv('BROKER_HOST', 'http://192.168.0.103:5001')
 
 app = Flask(__name__,template_folder='html')
 app.secret_key = os.getenv('SECRET_KEY', '1234')
@@ -129,7 +130,7 @@ def implants():
                 fiveInstall = pb.generateInstall(myConnection,UUID,5)[0]
                 uninstall = pb.generateInstall(myConnection,UUID,0)[1]
                 installLines = [zeroInstall,oneInstall,twoInstall,threeInstall,fourInstall,fiveInstall,uninstall]
-                return render_template('implants.html',implant=implant,pendingTasks=pendingTasks,surveyData=surveyData,completedTasks=completedTasks,C2List=C2List,callbacks=callbacks,installLines=installLines,error=error)
+                return render_template('implants.html',implant=implant,pendingTasks=pendingTasks,surveyData=surveyData,completedTasks=completedTasks,C2List=C2List,callbacks=callbacks,installLines=installLines,error=error, broker_host=broker_host)
         except Exception as e:
             print(e)
             error = f"Error accessing implant \"{UUID}.\"  Please select a new implant."
@@ -343,17 +344,50 @@ def logs():
         error = None
         if request.method == 'POST':
             logs = pb.getLogs(myConnection)
-            return render_template('logs.html',logs=logs,error=error)
+            return render_template('logs.html',logs=logs,error=error,broker_host=broker_host)
         else:
             logs = pb.getLogs(myConnection)
-            return render_template('logs.html',logs=logs,error=error)
+            return render_template('logs.html',logs=logs,error=error,broker_host=broker_host)
 
-@app.route('/logs_fragment')
-def logs_fragment():
+@app.route('/fragment_logs')
+def fragment_logs():
     with MySQLConnection(connection_settings) as myConnection:
         error = None
         logs = pb.getLogs(myConnection)
-        return render_template('logs_fragment.html',logs=logs,error=error)        
+        return render_template('fragment_logs.html',logs=logs,error=error)     
+
+
+@app.route('/fragment_CheckIns',methods=['GET','POST'])
+def fragment_CheckIns():
+    with MySQLConnection(connection_settings) as myConnection:
+        error=None
+        cookie = request.cookies.get("implant_id")
+        print(f"Cookie implant: {cookie}")
+        try:
+            if cookie:  #check if a cookie exists, otherwise send to implant selection screen
+                UUID = cookie
+                callbacks=pb.getCallbacks(myConnection,UUID,"10")   
+                print("ok")
+                return render_template('fragment_CheckIns.html',callbacks=callbacks,error=error)
+        except Exception as e:
+            error = f"Error retrieving check-ins: {e}"
+        return render_template('fragment_CheckIns.html',callbacks=[],error=error)
+
+@app.route('/fragment_CheckInsModal',methods=['GET','POST'])
+def fragment_checkInsModal():
+    with MySQLConnection(connection_settings) as myConnection:
+        error=None
+        cookie = request.cookies.get("implant_id")
+        print(f"Cookie implant: {cookie}")
+        try:
+            if cookie:  #check if a cookie exists, otherwise send to implant selection screen
+                UUID = cookie
+                callbacks=pb.getCallbacks(myConnection,UUID,"10")   
+                print("ok")
+                return render_template('fragment_checkInsModal.html',callbacks=callbacks,error=error)
+        except Exception as e:
+            error = f"Error retrieving check-ins: {e}"
+        return render_template('fragment_checkInsModal.html',callbacks=[],error=error)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
