@@ -121,7 +121,7 @@ Bind + port + optional TLS:
 Bind + port:
 
     python -m dotenv -f .env run -- \
-      python services/app/app.py \
+      python services/web/app.py \
         -b 0.0.0.0 \
         -p 8080
 
