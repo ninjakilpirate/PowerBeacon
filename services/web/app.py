@@ -107,14 +107,14 @@ def implants():
     with MySQLConnection(connection_settings) as myConnection:
         error=None
         cookie = request.cookies.get("implant_id")
-        print(f"Cookie implant: {cookie}")
+        
 
         #cookie = "NewTest"
         
         try:
             if cookie:  #check if a cookie exists, otherwise send to implant selection screen
                 UUID = cookie
-                print(f"Using implant {UUID} from cookie")
+                
 
                 
                 callbacks=pb.getCallbacks(myConnection,UUID,"10")
