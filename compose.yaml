@@ -1,5 +1,21 @@
 name: powerbeacon
 services:
+  mariadb:
+    image: mariadb:11.3.2
+    container_name: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./services/mariadb/my.cnf:/etc/mysql/my.cnf
+      - ./services/mariadb/initdb:/docker-entrypoint-initdb.d
+
   powerbeacon-server:
     build:
       context: .
@@ -16,6 +32,32 @@ services:
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASS: ${REDIS_PASS}
     ports: ["8000:8000"]
+    depends_on:
+      - mariadb
+      - redis
+  powerbeacon-server2:
+    build:
+      context: .
+      dockerfile: services/server/Dockerfile
+    image: powerbeacon/server:latest
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWD}
+      DB_NAME: ${DB_NAME}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASS: ${REDIS_PASS}
+    ports: ["9000:8000"]
+    depends_on:
+      - mariadb
+      - redis
+  command: ["python3", "powerbeaconServer.py", "-b", "192.168.0.103", "--ssl", "true"]
+    volumes:
+      - ./cert.pem:/tmp/cert.pem
+      - ./key.pem:/tmp/key.pem
 
   message-broker:
     build:
@@ -29,6 +71,18 @@ services:
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASS: ${REDIS_PASS}
     ports: ["5001:5001"]
+    depends_on:
+      - mariadb
+      - redis
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./services/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
 
   app:
     build:
@@ -43,7 +97,11 @@ services:
       DB_NAME: ${DB_NAME}
       BROKER_HOST: ${BROKER_HOST:-http://message-broker:5001}
     ports: ["5000:5000"]
+    depends_on:
+      - mariadb
 
 networks:
   default:
     name: powerbeacon_net
+volumes:
+  mariadb_data:

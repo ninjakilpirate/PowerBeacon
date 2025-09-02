@@ -7,5 +7,5 @@ RUN pip install --no-index --find-links=/wheelhouse -r /app/requirements.txt
 COPY services/messageBroker/messageBroker.py /app/messageBroker.py
 RUN adduser --disabled-password --gecos "" appuser
 USER appuser
-#EXPOSE 5001
+EXPOSE 5001
 CMD ["python","-u","messageBroker.py"]
