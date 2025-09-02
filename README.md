@@ -73,8 +73,8 @@ Tip: use LAN IP/DNS (not `localhost`) for services other hosts/browsers must rea
 
 ## 2) Start Redis
 
-Local, default (no auth):
-    redis-server --daemonize yes
+Local, default (no auth):  
+    `redis-server --daemonize yes`
 
 Exposed/remote with password (recommended if not localhost):
     redis-server \
