@@ -33,7 +33,8 @@ Main:
 """
 
 import argparse
-import MySQLdb
+#import MySQLdb
+import pymysql as MySQLdb
 from flask import Flask, render_template, request, redirect, url_for, flash, make_response
 import os
 import lib.pbLibrary as pb

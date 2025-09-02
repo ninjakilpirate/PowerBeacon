@@ -32,7 +32,8 @@ import argparse
 import json
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import MySQLdb
+#import MySQLdb
+import pymysql as MySQLdb
 import redis
 import os
 
