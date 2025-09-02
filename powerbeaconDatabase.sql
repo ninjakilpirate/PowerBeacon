@@ -15,9 +15,16 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+CREATE DATABASE IF NOT EXISTS `powerbeacon` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'pbuser'@'%' IDENTIFIED BY 'pbpass';
+GRANT ALL PRIVILEGES ON `powerbeacon`.* TO 'pbuser'@'%';
+FLUSH PRIVILEGES;
+
 --
 -- Table structure for table `callbackAddresses`
 --
+
 
 DROP TABLE IF EXISTS `callbackAddresses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

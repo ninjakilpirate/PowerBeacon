@@ -59,7 +59,7 @@ connection_settings = {
 #configure broker host for message server
 broker_host = os.getenv('BROKER_HOST', 'http://192.168.0.103:5001')
 
-app = Flask(__name__,template_folder='html')
+app = Flask(__name__,template_folder='html', static_folder='static')
 app.secret_key = os.getenv('SECRET_KEY', '1234')
 
 #Routes
