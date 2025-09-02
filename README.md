@@ -107,7 +107,7 @@ Basic handshake check (from the browser machine):
 Bind + port + optional TLS:
 
     python -m dotenv -f .env run -- \
-      python services/powerbeacon_server/powerbeaconServer.py \
+      python services/server/powerbeaconServer.py \
         -b 0.0.0.0 \
         -p 8000 \
         --ssl true
