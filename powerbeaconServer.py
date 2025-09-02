@@ -34,6 +34,7 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import MySQLdb
 import redis
+import os
 
 should_get=False             #controls whether thge server is active
 stop_threads=False           #stop the thread resetting should_get
@@ -48,7 +49,14 @@ class MySQLConnection:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.connection.close()
 
-redis_client = redis.Redis(host='127.0.0.1', port=6379, db=0)
+
+def check_redis_connection():
+    try:
+        redis_client.ping()
+    except redis.ConnectionError:
+        print("WARNING: Redis server is not available")
+        print("Web server functionality will be limited without Redis")
+
 
 #Configure DB Connection
 connection_settings = {
@@ -57,6 +65,13 @@ connection_settings = {
     'passwd': os.getenv('DB_PASSWD', 't00r'),
     'db': os.getenv('DB_NAME', 'powerbeacon')
 }
+
+#Configure Redis Connection
+redis_host = os.getenv('REDIS_HOST', '127.0.0.1')
+redis_port = int(os.getenv('REDIS_PORT', 6379))
+redis_db = int(os.getenv('REDIS_DB', 0))
+redis_pass = os.getenv('REDIS_PASS', 'password')
+redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db, username="default", password=redis_pass)
 
 def writeLog(log_type, log_text, implant_name, UUID):
     """
@@ -75,7 +90,10 @@ def writeLog(log_type, log_text, implant_name, UUID):
         )
         cursor.execute(query, (log_type, log_text, implant_name, UUID))
         connection.commit()
-    redis_client.publish('log_channel', 'new_log')
+    try:
+        redis_client.publish('log_channel', 'new_log')
+    except redis.ConnectionError:
+        pass
 
 #Publish CheckIn Messages
 #Current types are taskDelivered, dataReceived
@@ -85,7 +103,10 @@ def publishCheckIn(UUID, type, message):
     'type': type,
     'message': message
 }
-    redis_client.publish('checkin_channel', json.dumps(msg))
+    try:
+        redis_client.publish('checkin_channel', json.dumps(msg))
+    except redis.ConnectionError:
+        pass
 
 def getLogTime():
     return datetime.now().strftime("%m/%d/%Y %H:%M:%S")
@@ -319,7 +340,7 @@ if __name__ == "__main__":
     else:
         host = ''
     port = args.p
-    
+    check_redis_connection()
     reset=threading.Thread(target=unset_should_get, args=())
     reset.start()
     if args.ssl=="true":

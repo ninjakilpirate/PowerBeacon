@@ -55,6 +55,7 @@ connection_settings = {
     'passwd': os.getenv('DB_PASSWD', 't00r'),
     'db': os.getenv('DB_NAME', 'powerbeacon')
 }
+#configure broker host for message server
 broker_host = os.getenv('BROKER_HOST', 'http://192.168.0.103:5001')
 
 app = Flask(__name__,template_folder='html')

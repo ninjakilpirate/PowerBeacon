@@ -3,3 +3,6 @@
 
 #ignore pyc files
 *.pyc
+
+#ignore redis dumps
+*.rdb
