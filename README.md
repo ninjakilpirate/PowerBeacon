@@ -92,9 +92,10 @@ Ping test:
 
 ## 3) Start the Message Broker (dotenv-powered)
 
-From the repo root (with venv active). This injects `.env` automatically:
+From the repo root (with venv active). This injects `.env` automatically:  
+
     python -m dotenv -f .env run -- \
-      python services/messageBroker/messageBroker.py
+    python services/messageBroker/messageBroker.py
 
 Basic handshake check (from the browser machine):
     `curl "http://192.168.0.100:5001/socket.io/?EIO=4&transport=polling&t=ping"`  
