@@ -77,6 +77,7 @@ Local, default (no auth):
     `redis-server --daemonize yes`
 
 Exposed/remote with password (recommended if not localhost):
+    
     redis-server \
       --bind 0.0.0.0 \
       --port 6379 \
