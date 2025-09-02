@@ -1,6 +1,6 @@
-# PowerBeacon — Manual Run Guide (No Docker)
+# PowerBeacon — Setup Guide
 
-Run **MariaDB**, **Redis**, the **Message Broker**, the **PowerBeacon Server**, and the **Web UI** by hand.  
+Run `MariaDB`, `Redis`, the `Message Broker`, the `PowerBeacon Server`, and the `Web UI` by hand.  
 All config comes from one `.env` file loaded with `python-dotenv`.
 
 ---
@@ -10,12 +10,13 @@ All config comes from one `.env` file loaded with `python-dotenv`.
 - Python 3.11 with a virtual environment
 - Packages: `flask`, `flask-socketio`, `redis`, `pymysql`, `eventlet`, `python-dotenv`, `requests`
 
-Create venv & install:
-    python3.11 -m venv .venv
-    source .venv/bin/activate
-    pip install --no-index --find-links=wheelhouse -r services/app/requirements.txt
-    pip install --no-index --find-links=wheelhouse -r services/powerbeacon_server/requirements.txt
-    pip install --no-index --find-links=wheelhouse -r services/messageBroker/requirements.txt
+Create venv & install: 
+
+    python3.11 -m venv .venv        
+    source .venv/bin/activate  
+    pip install --no-index --find-links=wheelhouse -r services/app/requirements.txt  
+    pip install --no-index --find-links=wheelhouse -r services/powerbeacon_server/requirements.txt  
+    pip install --no-index --find-links=wheelhouse -r services/messageBroker/requirements.txt  
 
 
 ---
@@ -57,17 +58,16 @@ Tip: use LAN IP/DNS (not `localhost`) for services other hosts/browsers must rea
     mysql -u root -p
 
     -- inside MySQL:
-    CREATE DATABASE IF NOT EXISTS `powerbeacon`
-      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    CREATE USER IF NOT EXISTS 'pbuser'@'%' IDENTIFIED BY 'pbpass';
-    GRANT ALL PRIVILEGES ON `powerbeacon`.* TO 'pbuser'@'%';
-    FLUSH PRIVILEGES;
-    EXIT;
+   
+       CREATE DATABASE IF NOT EXISTS `powerbeacon`
+       CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+       CREATE USER IF NOT EXISTS 'pbuser'@'%' IDENTIFIED BY 'pbpass';
+       GRANT ALL PRIVILEGES ON `powerbeacon`.* TO 'pbuser'@'%';
+       FLUSH PRIVILEGES;
+       EXIT;
 
-3. Import your SQL dump (adjust path):
+4. Import your SQL dump (adjust path):
     mysql -u root -p powerbeacon < powerbeaconDatabase.sql
-    # or:
-    # mysql -u pbuser -p powerbeacon < powerbeaconDatabase.sql
 
 ---
 
@@ -85,7 +85,7 @@ Exposed/remote with password (recommended if not localhost):
       --daemonize yes
 
 Ping test:
-    redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -a "$REDIS_PASS" PING
+    `redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -a "$REDIS_PASS" PING`  
     # → PONG
 
 ---
@@ -97,13 +97,14 @@ From the repo root (with venv active). This injects `.env` automatically:
       python services/messageBroker/messageBroker.py
 
 Basic handshake check (from the browser machine):
-    curl "http://192.168.0.100:5001/socket.io/?EIO=4&transport=polling&t=ping"
+    `curl "http://192.168.0.100:5001/socket.io/?EIO=4&transport=polling&t=ping"`  
 
 ---
 
 ## 4) Start the PowerBeacon Server (backend)
 
 Bind + port + optional TLS:
+
     python -m dotenv -f .env run -- \
       python services/powerbeacon_server/powerbeaconServer.py \
         -b 0.0.0.0 \
@@ -117,15 +118,15 @@ Bind + port + optional TLS:
 ## 5) Start the Web UI
 
 Bind + port:
+
     python -m dotenv -f .env run -- \
       python services/app/app.py \
         -b 0.0.0.0 \
         -p 8080
 
 Open the UI:
-    http://<host-ip>:8080/
 
----
+    http://<host-ip>:8080/
 
 ---
 
