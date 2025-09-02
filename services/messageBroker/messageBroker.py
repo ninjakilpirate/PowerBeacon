@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+
+import eventlet
+eventlet.monkey_patch()
 from flask import Flask
 from flask_socketio import SocketIO
 import redis
@@ -6,8 +9,11 @@ import os
 import threading
 import json
 
+
+
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True)  
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet", logger=True)
+
 
 #Configure Redis Connection
 redis_host = os.getenv('REDIS_HOST', '127.0.0.1')

@@ -1,0 +1,49 @@
+name: powerbeacon
+services:
+  powerbeacon-server:
+    build:
+      context: .
+      dockerfile: services/server/Dockerfile
+    image: powerbeacon/server:latest
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWD}
+      DB_NAME: ${DB_NAME}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASS: ${REDIS_PASS}
+    ports: ["8000:8000"]
+
+  message-broker:
+    build:
+      context: .
+      dockerfile: services/messageBroker/Dockerfile
+    image: powerbeacon/broker:latest
+    env_file: .env
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASS: ${REDIS_PASS}
+    ports: ["5001:5001"]
+
+  app:
+    build:
+      context: .
+      dockerfile: services/web/Dockerfile
+    image: powerbeacon/app:latest
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWD}
+      DB_NAME: ${DB_NAME}
+      BROKER_HOST: ${BROKER_HOST:-http://message-broker:5001}
+    ports: ["5000:5000"]
+
+networks:
+  default:
+    name: powerbeacon_net
