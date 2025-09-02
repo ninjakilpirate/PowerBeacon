@@ -7,7 +7,8 @@ import threading
 import json
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True)
+socketio = SocketIO(app, cors_allowed_origins="*", logger=True)  
+
 #Configure Redis Connection
 redis_host = os.getenv('REDIS_HOST', '127.0.0.1')
 redis_port = int(os.getenv('REDIS_PORT', 6379))
@@ -45,3 +46,5 @@ threading.Thread(target=checkin_listener, daemon=True).start()
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5001)
+
+
