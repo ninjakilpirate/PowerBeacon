@@ -14,18 +14,19 @@ PowerBeacon is a modular Command and Control (C2) framework composed of five Doc
 - [Deployment Notes](#deployment-notes)
 - [Recommended Order of Operations](#recommended-order-of-operations)
 - [Build & Deploy with Docker](#build--deploy-with-docker)
-  - [Folder Layout](#folder-layout-reference)
+  - [Folder Layout](#folder-layout)
   - [Prerequisites](#prerequisites)
-  - [1) Create/Review .env](#1-createreview-env)
-  - [2) Review/Edit compose.yaml](#2-reviewedit-composeyaml)
-  - [3) (Optional) Edit Dockerfiles](#3-optional-edit-dockerfiles)
-  - [4) Build Application Images](#4-build-application-images)
-  - [5) Start the Stack](#5-start-the-stack)
-  - [6) Verify](#6-verify)
-  - [7) Stop / Restart / Rebuild](#7-stop--restart--rebuild)
-  - [8) Common Adjustments](#8-common-adjustments)
-  - [9) Quick Start (Minimal)](#9-quick-start-minimal)
-  - [11) Offline Lab Note](#11-offline-lab-note)
+  - [Build and Deploy Instructions](#build-and-deploy-instructions)
+    - [1) Create/Review .env](#1-createreview-env)
+    - [2) Review/Edit compose.yaml](#2-reviewedit-composeyaml)
+    - [3) (Optional) Edit Dockerfiles](#3-optional-edit-dockerfiles)
+    - [4) Build Application Images](#4-build-application-images)
+    - [5) Start the Stack](#5-start-the-stack)
+    - [6) Verify](#6-verify)
+    - [7) Stop / Restart / Rebuild](#7-stop--restart--rebuild)
+    - [8) Common Adjustments](#8-common-adjustments)
+    - [9) Quick Start (Minimal)](#9-quick-start-minimal)
+    - [10) Offline Lab Note](#11-offline-lab-note)
 
 ## Container Overview
 
@@ -182,6 +183,7 @@ powerbeacon/
 - Open the project root in a terminal.
 
 ---
+##Build and Deploy Instructions
 
 ### 1) Create/Review `.env`
 
