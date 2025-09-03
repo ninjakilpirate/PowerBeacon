@@ -14,7 +14,7 @@ PowerBeacon is a modular Command and Control (C2) framework composed of five Doc
 - [Deployment Notes](#deployment-notes)
 - [Recommended Order of Operations](#recommended-order-of-operations)
 - [Build & Deploy with Docker](#build--deploy-with-docker)
-  - [Folder Layout (reference)](#folder-layout-reference)
+  - [Folder Layout](#folder-layout-reference)
   - [Prerequisites](#prerequisites)
   - [1) Create/Review .env](#1-createreview-env)
   - [2) Review/Edit compose.yaml](#2-reviewedit-composeyaml)
@@ -143,7 +143,7 @@ This section explains how to build all PowerBeacon containers locally and start 
 
 ---
 
-### Folder Layout (reference)
+### Folder Layout
 
 > Your repository should look roughly like this. If your layout differs, adjust the paths in `docker-compose.yml`.
 ```
