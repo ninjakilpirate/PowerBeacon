@@ -183,7 +183,7 @@ powerbeacon/
 - Open the project root in a terminal.
 
 ---
-##Build and Deploy Instructions
+## Build and Deploy Instructions
 
 ### 1) Create/Review `.env`
 
