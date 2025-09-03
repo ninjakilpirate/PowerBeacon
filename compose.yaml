@@ -31,10 +31,13 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASS: ${REDIS_PASS}
-    ports: ["8000:8000"]
+    ports:
+      - "8000:8000"
     depends_on:
       - mariadb
       - redis
+
+
   powerbeacon-server2:
     build:
       context: .
@@ -50,14 +53,15 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASS: ${REDIS_PASS}
-    ports: ["9000:8000"]
+      #IF using ssl
+      SSL_TRUE: true
+      
+    ports:
+      - "9000:8000"
     depends_on:
       - mariadb
       - redis
-  command: ["python3", "powerbeaconServer.py", "-b", "192.168.0.103", "--ssl", "true"]
-    volumes:
-      - ./cert.pem:/tmp/cert.pem
-      - ./key.pem:/tmp/key.pem
+    
 
   message-broker:
     build:
@@ -70,7 +74,8 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASS: ${REDIS_PASS}
-    ports: ["5001:5001"]
+    ports:
+      - "5001:5001"
     depends_on:
       - mariadb
       - redis
@@ -82,7 +87,9 @@ services:
       - "6379:6379"
     volumes:
       - ./services/redis/redis.conf:/usr/local/etc/redis/redis.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    command:
+      - "redis-server"
+      - "/usr/local/etc/redis/redis.conf"
 
   app:
     build:
@@ -96,7 +103,8 @@ services:
       DB_PASSWD: ${DB_PASSWD}
       DB_NAME: ${DB_NAME}
       BROKER_HOST: ${BROKER_HOST:-http://message-broker:5001}
-    ports: ["5000:5000"]
+    ports:
+      - "5000:5000"
     depends_on:
       - mariadb
 
