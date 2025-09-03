@@ -38,7 +38,7 @@ services:
       - redis
 
 
-  powerbeacon-server2:
+  powerbeacon-server-ssl:
     build:
       context: .
       dockerfile: services/server/Dockerfile
