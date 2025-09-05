@@ -10,4 +10,4 @@ LISTEN_PORT="${SOCAT_LISTEN_PORT:-443}"
 FORWARD_IP="${SOCAT_FORWARD_IP:-127.0.0.1}"
 FORWARD_PORT="${SOCAT_FORWARD_PORT:-80}"
 
-exec socat OPENSSL-LISTEN:${LISTEN_PORT},cert=/tmp/cert.pem,key=/tmp/key.pem,verify=0,reuseaddr,fork TCP:${FORWARD_IP}:${FORWARD_PORT}
+exec socat OPENSSL-LISTEN:${LISTEN_PORT},cert=/tmp/cert.pem,key=/tmp/key.pem,verify=0,openssl-min-proto-version=TLS1,openssl-max-proto-version=TLS1.2,ciphers="DEFAULT:@SECLEVEL=0",reuseaddr,fork TCP:${FORWARD_IP}:${FORWARD_PORT}
