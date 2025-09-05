@@ -451,12 +451,6 @@ if __name__ == "__main__":
     parser.add_argument('-b', type=str, required=False)
     args = parser.parse_args()
     
-    if args.b:
-        host = args.b
-    else:
-        host = '0.0.0.0'
-    if args.p:
-        port = args.p
-    else:
-        port = 5000
-    app.run(host,port,debug=True)
+    host = args.b if args.b else os.getenv('POWERBEACON_WEB_BIND_IP', '0.0.0.0')
+    port = args.p if args.p else int(os.getenv('POWERBEACON_WEB_PORT', 5000))
+    app.run(host, port, debug=True)

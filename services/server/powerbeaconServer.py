@@ -336,10 +336,7 @@ if __name__ == "__main__":
     parser.add_argument('--ssl',type=str, required=False)
     args = parser.parse_args()
     
-    if args.b:
-        host = args.b
-    else:
-        host = ''
+    host = args.b if args.b else ''
     port = args.p
     check_redis_connection()
     reset=threading.Thread(target=unset_should_get, args=())

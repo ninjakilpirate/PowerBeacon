@@ -31,6 +31,8 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASS: ${REDIS_PASS}
+      POWERBEACON_SERVER_BIND_IP: ${POWERBEACON_SERVER_BIND_IP}
+      POWERBEACON_SERVER_PORT: ${POWERBEACON_SERVER_PORT}
     ports:
       - "8000:8000"
     depends_on:
@@ -53,8 +55,10 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASS: ${REDIS_PASS}
+      POWERBEACON_SERVER_BIND_IP: ${POWERBEACON_SERVER_BIND_IP}
+      POWERBEACON_SERVER_PORT: ${POWERBEACON_SERVER_PORT}
       #IF using ssl
-      SSL_TRUE: true
+      #SSL_TRUE: true
       
     ports:
       - "9000:8000"
@@ -103,10 +107,25 @@ services:
       DB_PASSWD: ${DB_PASSWD}
       DB_NAME: ${DB_NAME}
       BROKER_HOST: ${BROKER_HOST:-http://message-broker:5001}
+      POWERBEACON_WEB_BIND_IP: ${POWERBEACON_WEB_BIND_IP}
+      POWERBEACON_WEB_PORT: ${POWERBEACON_WEB_PORT}
     ports:
       - "5000:5000"
     depends_on:
       - mariadb
+
+  socat-ssl-proxy:
+    build:
+      context: .
+      dockerfile: services/socat/Dockerfile
+    image: powerbeacon/socat:latest
+    network_mode: host
+    env_file: .env
+    environment:
+      SOCAT_LISTEN_PORT: ${SOCAT_LISTEN_PORT}
+      SOCAT_FORWARD_IP: ${SOCAT_FORWARD_IP}
+      SOCAT_FORWARD_PORT: ${SOCAT_FORWARD_PORT}
+
 
 networks:
   default:
